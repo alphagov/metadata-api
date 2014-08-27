@@ -13,7 +13,7 @@ import (
 )
 
 var _ = Describe("Healthcheck", func() {
-	It("responds simply with 'OK'", func() {
+	It("responds with a status of OK", func() {
 		testServer := testHandlerServer(HealthCheckHandler)
 		defer testServer.Close()
 
@@ -23,7 +23,7 @@ var _ = Describe("Healthcheck", func() {
 
 		body, err := readResponseBody(response)
 		Expect(err).To(BeNil())
-		Expect(body).To(Equal("OK"))
+		Expect(body).To(Equal(`{"status":"OK"}`))
 	})
 })
 

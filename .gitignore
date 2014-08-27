@@ -22,3 +22,7 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Project-specific
+metadata-api
+third_party

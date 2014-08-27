@@ -1,20 +1,23 @@
-.PHONY: godep deps test build
+.PHONY: deps test build rm_compiled_self
 
 BINARY := metadata-api
+ORG_PATH := github.com/alphagov
+REPO_PATH := $(ORG_PATH)/$(BINARY)
 
-all: godep deps test build
+all: deps test build
 
-godep:
-	go get -v -u github.com/tools/godep
+deps: third_party/src/$(REPO_PATH) rm_compiled_self
+	go run third_party.go get -t -v .
 
-deps: godep
-	godep get
+rm_compiled_self:
+	rm -rf third_party/pkg/*/$(REPO_PATH)
 
-test: deps
-	godep go test -v ./...
+third_party/src/$(REPO_PATH):
+	mkdir -p third_party/src/$(ORG_PATH)
+	ln -s ../../../.. third_party/src/$(REPO_PATH)
 
-build: deps
-	godep go build -v -o $(BINARY)
+test:
+	go run third_party.go test -v $(REPO_PATH)
 
-clean:
-	@rm -f $(BINARY)
+build:
+	go run third_party.go build -o $(BINARY)

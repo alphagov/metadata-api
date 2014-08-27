@@ -11,8 +11,8 @@ To run the code you will need to have at least Go 1.2 installed.
 
 ## Development
 
-You can run the tests locally by running the following to use `godep`
-to fetch the dependencies:
+You can run the tests locally by running the following to use
+`third_party.go` to fetch the dependencies:
 
 ```bash
 make

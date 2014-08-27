@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/alphagov/metadata_api",
+	"ImportPath": "github.com/alphagov/metadata-api",
 	"GoVersion": "go1.2.2",
 	"Deps": [
 		{

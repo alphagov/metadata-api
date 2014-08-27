@@ -1,6 +1,6 @@
 .PHONY: godep deps test build
 
-BINARY := metadata_api
+BINARY := metadata-api
 
 all: godep deps test build
 

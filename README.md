@@ -1,6 +1,6 @@
 # Metadata API
 
-[![continuous integration status](https://travis-ci.org/alphagov/metadata_api.svg?branch=master)](http://travis-ci.org/alphagov/metadata_api)
+[![continuous integration status](https://travis-ci.org/alphagov/metadata-api.svg?branch=master)](http://travis-ci.org/alphagov/metadata-api)
 
 A small HTTP application that acts as an easy way to get metadata
 about given URLs on [GOV.UK](https://www.gov.uk/).

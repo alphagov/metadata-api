@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	. "github.com/alphagov/metadata_api"
+	. "github.com/alphagov/metadata-api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

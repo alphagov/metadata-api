@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/codegangsta/negroni"
+	"github.com/meatballhat/negroni-logrus"
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -11,7 +14,13 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/healthcheck", HealthCheckHandler)
+	httpMux := http.NewServeMux()
+	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	middleware := negroni.New()
+	middleware.Use(negronilogrus.NewCustomMiddleware(
+		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api"))
+	middleware.UseHandler(httpMux)
+
+	middleware.Run(":3000")
 }

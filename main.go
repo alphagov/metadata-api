@@ -2,42 +2,55 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
 	"github.com/meatballhat/negroni-logrus"
 	"gopkg.in/unrolled/render.v1"
+
+	"github.com/alphagov/metadata-api/content_api"
 )
 
-type ResponseInfo struct {
-	Status string `json:"status"`
-}
+var (
+	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
+	contentAPI  = getEnvDefault("CONTENT_API", "content-api")
 
-type Metadata struct {
-	ResponseInfo *ResponseInfo `json:"_response_info"`
-}
-
-var renderer = render.New(render.Options{})
+	renderer = render.New(render.Options{})
+)
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Path[len("/info"):]
+func InfoHandler(contentAPI, bearerToken string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		slug := r.URL.Path[len("/info"):]
 
-	if len(slug) <= 1 || slug == "/" {
-		renderer.JSON(w, http.StatusNotFound, &Metadata{ResponseInfo: &ResponseInfo{Status: "not found"}})
-		return
+		if len(slug) <= 1 || slug == "/" {
+			renderError(w, http.StatusNotFound, "not found")
+			return
+		}
+
+		artefact, err := content_api.FetchArtefact(contentAPI, bearerToken, slug)
+		if err != nil {
+			renderError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		metadata := &Metadata{
+			Artefact:     artefact,
+			ResponseInfo: &ResponseInfo{Status: "ok"},
+		}
+
+		renderer.JSON(w, http.StatusOK, metadata)
 	}
-
-	renderer.JSON(w, http.StatusOK, &Metadata{ResponseInfo: &ResponseInfo{Status: "ok"}})
 }
 
 func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
-	httpMux.HandleFunc("/info", InfoHandler)
+	httpMux.HandleFunc("/info", InfoHandler(contentAPI, bearerToken))
 
 	middleware := negroni.New()
 	middleware.Use(negronilogrus.NewCustomMiddleware(
@@ -45,4 +58,17 @@ func main() {
 	middleware.UseHandler(httpMux)
 
 	middleware.Run(":3000")
+}
+
+func renderError(w http.ResponseWriter, status int, errorString string) {
+	renderer.JSON(w, status, &Metadata{ResponseInfo: &ResponseInfo{Status: errorString}})
+}
+
+func getEnvDefault(key string, defaultVal string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultVal
+	}
+
+	return val
 }

@@ -1,7 +1,9 @@
-package main
+package request
 
 import (
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func NewRequest(url, bearerToken string) (*http.Response, error) {
@@ -14,4 +16,11 @@ func NewRequest(url, bearerToken string) (*http.Response, error) {
 
 	request.Header.Add("Authorization", "Bearer "+bearerToken)
 	return client.Do(request)
+}
+
+func ReadResponseBody(response *http.Response) (string, error) {
+	body, err := ioutil.ReadAll(response.Body)
+	defer response.Body.Close()
+
+	return strings.TrimSpace(string(body)), err
 }

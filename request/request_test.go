@@ -1,4 +1,4 @@
-package main_test
+package request_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	. "github.com/alphagov/metadata-api"
+	. "github.com/alphagov/metadata-api/request"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

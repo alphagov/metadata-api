@@ -1,7 +1,7 @@
-package main_test
+package need_api_test
 
 import (
-	. "github.com/alphagov/metadata-api"
+	. "github.com/alphagov/metadata-api/need_api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

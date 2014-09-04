@@ -1,10 +1,7 @@
 package main_test
 
 import (
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 
 	. "github.com/alphagov/metadata-api"
 
@@ -26,14 +23,3 @@ var _ = Describe("Healthcheck", func() {
 		Expect(body).To(Equal(`{"status":"OK"}`))
 	})
 })
-
-func testHandlerServer(handler http.HandlerFunc) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(handler))
-}
-
-func readResponseBody(response *http.Response) (string, error) {
-	body, err := ioutil.ReadAll(response.Body)
-	defer response.Body.Close()
-
-	return strings.TrimSpace(string(body)), err
-}

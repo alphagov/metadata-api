@@ -16,7 +16,7 @@ var _ = Describe("Need", func() {
 			Expect(need).To(BeNil())
 		})
 
-		It("foo", func() {
+		It("can parse a Need API response and marshall it into a Need struct", func() {
 			exampleNeedApiResponse := `{
     "_response_info": {
         "status": "ok"

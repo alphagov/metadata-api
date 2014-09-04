@@ -17,7 +17,9 @@ third_party/src/$(REPO_PATH):
 	ln -s ../../../.. third_party/src/$(REPO_PATH)
 
 test:
-	go run third_party.go test -v $(REPO_PATH)
+	go run third_party.go test -v $(REPO_PATH) \
+		$(REPO_PATH)/content_api \
+		$(REPO_PATH)/need_api
 
 build:
 	go run third_party.go build -o $(BINARY)

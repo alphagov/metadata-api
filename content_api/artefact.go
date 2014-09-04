@@ -1,4 +1,4 @@
-package main
+package content_api
 
 import (
 	"encoding/json"

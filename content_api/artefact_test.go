@@ -1,7 +1,7 @@
-package main_test
+package content_api_test
 
 import (
-	. "github.com/alphagov/metadata-api"
+	. "github.com/alphagov/metadata-api/content_api"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

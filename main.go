@@ -15,9 +15,11 @@ import (
 
 var (
 	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
-	contentAPI  = getEnvDefault("CONTENT_API", "content-api")
-	needAPI     = getEnvDefault("CONTENT_API", "need-api")
+	appDomain   = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
 	port        = getEnvDefault("HTTP_PORT", "3000")
+
+	contentAPI = "contentapi." + appDomain
+	needAPI    = "need-api." + appDomain
 
 	renderer = render.New(render.Options{})
 )

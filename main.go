@@ -75,7 +75,7 @@ func main() {
 
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
-	httpMux.HandleFunc("/info", InfoHandler(contentAPI, needAPI, config))
+	httpMux.HandleFunc("/info/", InfoHandler(contentAPI, needAPI, config))
 
 	middleware := negroni.New()
 	middleware.Use(loggingMiddleware)

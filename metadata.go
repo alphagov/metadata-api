@@ -13,7 +13,7 @@ type ResponseInfo struct {
 
 type Metadata struct {
 	Artefact     *content_api.Artefact `json:"artefact"`
-	Needs        []*need_api.Need      `json:"need"`
+	Needs        []*need_api.Need      `json:"needs"`
 	ResponseInfo *ResponseInfo         `json:"_response_info"`
 }
 

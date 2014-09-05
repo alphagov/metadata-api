@@ -15,6 +15,7 @@ import (
 var (
 	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
 	contentAPI  = getEnvDefault("CONTENT_API", "content-api")
+	port        = getEnvDefault("PORT", "3000")
 
 	renderer = render.New(render.Options{})
 )
@@ -57,7 +58,7 @@ func main() {
 		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api"))
 	middleware.UseHandler(httpMux)
 
-	middleware.Run(":3000")
+	middleware.Run(":" + port)
 }
 
 func renderError(w http.ResponseWriter, status int, errorString string) {

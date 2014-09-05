@@ -14,10 +14,6 @@ import (
 )
 
 var (
-	config            *Config
-	logging           *logrus.Logger
-	loggingMiddleware *negronilogrus.Middleware
-
 	appDomain = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
 	port      = getEnvDefault("HTTP_PORT", "3000")
 
@@ -67,20 +63,16 @@ func InfoHandler(contentAPI, needAPI string, config *Config) func(http.ResponseW
 	}
 }
 
-func init() {
-	var err error
-
-	loggingMiddleware = negronilogrus.NewCustomMiddleware(
+func main() {
+	loggingMiddleware := negronilogrus.NewCustomMiddleware(
 		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api")
-	logging = loggingMiddleware.Logger
+	logging := loggingMiddleware.Logger
 
-	config, err = ReadConfig("config.json")
+	config, err := ReadConfig("config.json")
 	if err != nil {
 		logging.Fatalln("Couldn't load configuration", err)
 	}
-}
 
-func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 	httpMux.HandleFunc("/info", InfoHandler(contentAPI, needAPI, config))

@@ -15,6 +15,8 @@ func NewRequest(url, bearerToken string) (*http.Response, error) {
 	}
 
 	request.Header.Add("Authorization", "Bearer "+bearerToken)
+	request.Header.Add("Accept", "application/json")
+
 	return client.Do(request)
 }
 

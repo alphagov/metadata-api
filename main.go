@@ -15,7 +15,7 @@ import (
 var (
 	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
 	contentAPI  = getEnvDefault("CONTENT_API", "content-api")
-	port        = getEnvDefault("PORT", "3000")
+	port        = getEnvDefault("HTTP_PORT", "3000")
 
 	renderer = render.New(render.Options{})
 )

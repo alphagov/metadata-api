@@ -17,8 +17,8 @@ var (
 	appDomain = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
 	port      = getEnvDefault("HTTP_PORT", "3000")
 
-	contentAPI = "contentapi." + appDomain
-	needAPI    = "need-api." + appDomain
+	contentAPI = "https://contentapi." + appDomain
+	needAPI    = "https://need-api." + appDomain
 
 	renderer = render.New(render.Options{})
 )

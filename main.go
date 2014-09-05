@@ -10,11 +10,13 @@ import (
 	"gopkg.in/unrolled/render.v1"
 
 	"github.com/alphagov/metadata-api/content_api"
+	"github.com/alphagov/metadata-api/need_api"
 )
 
 var (
 	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
 	contentAPI  = getEnvDefault("CONTENT_API", "content-api")
+	needAPI     = getEnvDefault("CONTENT_API", "need-api")
 	port        = getEnvDefault("HTTP_PORT", "3000")
 
 	renderer = render.New(render.Options{})
@@ -24,8 +26,10 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, bearerToken string) func(http.ResponseWriter, *http.Request) {
+func InfoHandler(contentAPI, needAPI, bearerToken string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var needs []*need_api.Need
+
 		slug := r.URL.Path[len("/info"):]
 
 		if len(slug) <= 1 || slug == "/" {
@@ -39,8 +43,18 @@ func InfoHandler(contentAPI, bearerToken string) func(http.ResponseWriter, *http
 			return
 		}
 
+		for _, needID := range artefact.Details.NeedIDs {
+			need, err := need_api.FetchNeed(needAPI, bearerToken, needID)
+			if err != nil {
+				renderError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+			needs = append(needs, need)
+		}
+
 		metadata := &Metadata{
 			Artefact:     artefact,
+			Needs:        needs,
 			ResponseInfo: &ResponseInfo{Status: "ok"},
 		}
 
@@ -51,7 +65,7 @@ func InfoHandler(contentAPI, bearerToken string) func(http.ResponseWriter, *http
 func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
-	httpMux.HandleFunc("/info", InfoHandler(contentAPI, bearerToken))
+	httpMux.HandleFunc("/info", InfoHandler(contentAPI, needAPI, bearerToken))
 
 	middleware := negroni.New()
 	middleware.Use(negronilogrus.NewCustomMiddleware(

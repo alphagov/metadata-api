@@ -2,6 +2,8 @@ package need_api
 
 import (
 	"encoding/json"
+
+	"github.com/alphagov/metadata-api/request"
 )
 
 type Organisation struct {
@@ -38,6 +40,25 @@ type Need struct {
 func ParseNeedResponse(response []byte) (*Need, error) {
 	need := &Need{}
 	if err := json.Unmarshal(response, &need); err != nil {
+		return nil, err
+	}
+
+	return need, nil
+}
+
+func FetchNeed(needAPI, bearerToken, id string) (*Need, error) {
+	needResponse, err := request.NewRequest(needAPI+"/needs/"+id, bearerToken)
+	if err != nil {
+		return nil, err
+	}
+
+	needBody, err := request.ReadResponseBody(needResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	need, err := ParseNeedResponse([]byte(needBody))
+	if err != nil {
 		return nil, err
 	}
 

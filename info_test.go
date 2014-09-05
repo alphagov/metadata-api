@@ -15,9 +15,8 @@ var _ = Describe("Info", func() {
 	var (
 		bearerToken string = "some-secret-bearer-string"
 
-		contentAPIResponse string
-		testServer         *httptest.Server
-		testContentApi     *httptest.Server
+		contentAPIResponse, needAPIResponse     string
+		testServer, testContentApi, testNeedApi *httptest.Server
 	)
 
 	BeforeEach(func() {
@@ -31,14 +30,27 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, contentAPIResponse)
 		})
-		testServer = testHandlerServer(InfoHandler(testContentApi.URL, bearerToken))
+		testNeedApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+			if r.Header.Get("Authorization") != "Bearer "+bearerToken {
+				w.WriteHeader(http.StatusUnauthorized)
+				fmt.Fprintln(w, "Not authorised!")
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintln(w, needAPIResponse)
+		})
+
+		testServer = testHandlerServer(InfoHandler(testContentApi.URL, testNeedApi.URL, bearerToken))
 	})
 
 	AfterEach(func() {
 		testServer.Close()
 		testContentApi.Close()
+		testNeedApi.Close()
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
+		needAPIResponse = `{"_response_info":{"status":"not found"}}`
 	})
 
 	Describe("no slug provided", func() {
@@ -80,16 +92,54 @@ var _ = Describe("Info", func() {
     "status": "ok"
   }
 }`
+			needAPIResponse = `{
+  "_response_info": {
+    "status": "ok"
+  },
+  "id": 100019,
+  "role": "Someone carrying out a clinical trial",
+  "goal": "maintain my clinical trial authorisation",
+  "benefit": "ensure that my clinical trial continues to meet MHRA requirements and the appropriate legal criteria",
+  "organisation_ids": ["medicines-and-healthcare-products-regulatory-agency"],
+  "organisations": [{
+    "id": "medicines-and-healthcare-products-regulatory-agency",
+    "name": "Medicines and Healthcare Products Regulatory Agency",
+    "govuk_status": "joining",
+    "abbreviation": "MHRA",
+    "parent_ids": ["department-of-health"],
+    "child_ids": []
+  }],
+  "applies_to_all_organisations": false,
+  "justifications": ["The government is legally obliged to provide it", "It's something that people can do or it's something people need to know before they can do something that's regulated by/related to government"],
+  "impact": null,
+  "met_when": null,
+  "yearly_user_contacts": null,
+  "yearly_site_views": null,
+  "yearly_need_views": null,
+  "yearly_searches": null,
+  "other_evidence": null,
+  "legislation": null,
+  "in_scope": null,
+  "out_of_scope_reason": null,
+  "duplicate_of": null
+}`
 		})
 
-		It("returns the NeedID", func() {
+		It("returns a metadata response with the Artefact and Needs exposed", func() {
 			response, err := getSlug(testServer.URL, "dummy-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
 
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
-			Expect(body).To(ContainSubstring(`"_response_info":{"status":"ok"}`))
+
+			metadata, err := ParseMetadataResponse([]byte(body))
+			Expect(err).To(BeNil())
+
+			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
+			Expect(metadata.Artefact.Details.NeedIDs).To(Equal([]string{"100567"}))
+			Expect(metadata.Needs).To(HaveLen(1))
+			Expect(metadata.Needs[0].ID).To(Equal(100019))
 		})
 	})
 })

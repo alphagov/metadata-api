@@ -40,14 +40,14 @@ func InfoHandler(contentAPI, needAPI string, config *Config) func(http.ResponseW
 
 		artefact, err := content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 		if err != nil {
-			renderError(w, http.StatusInternalServerError, err.Error())
+			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
 			return
 		}
 
 		for _, needID := range artefact.Details.NeedIDs {
 			need, err := need_api.FetchNeed(needAPI, config.BearerTokenNeedAPI, needID)
 			if err != nil {
-				renderError(w, http.StatusInternalServerError, err.Error())
+				renderError(w, http.StatusInternalServerError, "Need: "+err.Error())
 				return
 			}
 			needs = append(needs, need)

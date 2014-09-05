@@ -13,15 +13,16 @@ import (
 
 var _ = Describe("Info", func() {
 	var (
-		bearerToken string = "some-secret-bearer-string"
-
 		contentAPIResponse, needAPIResponse     string
 		testServer, testContentApi, testNeedApi *httptest.Server
+
+		contentAPIBearerToken = "some-secret-content-api-bearer-string"
+		needAPIBearerToken    = "some-secret-need-api-bearer-string"
 	)
 
 	BeforeEach(func() {
 		testContentApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get("Authorization") != "Bearer "+bearerToken {
+			if r.Header.Get("Authorization") != "Bearer "+contentAPIBearerToken {
 				w.WriteHeader(http.StatusUnauthorized)
 				fmt.Fprintln(w, "Not authorised!")
 				return
@@ -31,7 +32,7 @@ var _ = Describe("Info", func() {
 			fmt.Fprintln(w, contentAPIResponse)
 		})
 		testNeedApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get("Authorization") != "Bearer "+bearerToken {
+			if r.Header.Get("Authorization") != "Bearer "+needAPIBearerToken {
 				w.WriteHeader(http.StatusUnauthorized)
 				fmt.Fprintln(w, "Not authorised!")
 				return
@@ -41,7 +42,8 @@ var _ = Describe("Info", func() {
 			fmt.Fprintln(w, needAPIResponse)
 		})
 
-		testServer = testHandlerServer(InfoHandler(testContentApi.URL, testNeedApi.URL, bearerToken))
+		testServer = testHandlerServer(InfoHandler(
+			testContentApi.URL, testNeedApi.URL, contentAPIBearerToken, needAPIBearerToken))
 	})
 
 	AfterEach(func() {

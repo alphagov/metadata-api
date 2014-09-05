@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	bearerToken = getEnvDefault("BEARER_TOKEN", "foo")
-	appDomain   = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
-	port        = getEnvDefault("HTTP_PORT", "3000")
+	contentAPIBearerToken = getEnvDefault("CONTENT_API_BEARER_TOKEN", "foo")
+	needAPIBearerToken    = getEnvDefault("NEED_API_BEARER_TOKEN", "foo")
+	appDomain             = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
+	port                  = getEnvDefault("HTTP_PORT", "3000")
 
 	contentAPI = "contentapi." + appDomain
 	needAPI    = "need-api." + appDomain
@@ -28,7 +29,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, needAPI, bearerToken string) func(http.ResponseWriter, *http.Request) {
+func InfoHandler(contentAPI, needAPI, contentAPIBearerToken, needAPIBearerToken string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var needs []*need_api.Need
 
@@ -39,14 +40,14 @@ func InfoHandler(contentAPI, needAPI, bearerToken string) func(http.ResponseWrit
 			return
 		}
 
-		artefact, err := content_api.FetchArtefact(contentAPI, bearerToken, slug)
+		artefact, err := content_api.FetchArtefact(contentAPI, contentAPIBearerToken, slug)
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		for _, needID := range artefact.Details.NeedIDs {
-			need, err := need_api.FetchNeed(needAPI, bearerToken, needID)
+			need, err := need_api.FetchNeed(needAPI, needAPIBearerToken, needID)
 			if err != nil {
 				renderError(w, http.StatusInternalServerError, err.Error())
 				return
@@ -67,7 +68,8 @@ func InfoHandler(contentAPI, needAPI, bearerToken string) func(http.ResponseWrit
 func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
-	httpMux.HandleFunc("/info", InfoHandler(contentAPI, needAPI, bearerToken))
+	httpMux.HandleFunc("/info", InfoHandler(contentAPI, needAPI,
+		contentAPIBearerToken, needAPIBearerToken))
 
 	middleware := negroni.New()
 	middleware.Use(negronilogrus.NewCustomMiddleware(

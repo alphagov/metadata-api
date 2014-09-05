@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	contentAPIBearerToken = getEnvDefault("CONTENT_API_BEARER_TOKEN", "foo")
-	needAPIBearerToken    = getEnvDefault("NEED_API_BEARER_TOKEN", "foo")
+	contentAPIBearerToken = getEnvDefault("BEARER_TOKEN_CONTENT_API", "foo")
+	needAPIBearerToken    = getEnvDefault("BEARER_TOKEN_NEED_API", "bar")
 	appDomain             = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
 	port                  = getEnvDefault("HTTP_PORT", "3000")
 

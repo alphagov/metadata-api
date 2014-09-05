@@ -26,3 +26,4 @@ _testmain.go
 # Project-specific
 metadata-api
 third_party
+test_config.json

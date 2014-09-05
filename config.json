@@ -1,0 +1,5 @@
+
+{
+  "bearer_token_content_api": "foo",
+  "bearer_token_need_api": "bar"
+}

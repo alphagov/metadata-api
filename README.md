@@ -30,3 +30,11 @@ go test -v ./...
 
 You can build a binary using either `make build` or `go build`. You
 should then be able to run the binary directly.
+
+### Configuration
+
+Most configuration can be handled using `ENV` variables that get
+passed into the process. However the `BEARER_TOKEN` values for both
+the Content API and the Need API are provided using a JSON file in the
+working directory of the process. See `config.json` for an example of
+this file.

@@ -25,3 +25,6 @@ test: deps
 
 build: deps
 	go run third_party.go build -o $(BINARY)
+
+run: build
+	./metadata-api

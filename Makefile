@@ -16,12 +16,12 @@ third_party/src/$(REPO_PATH):
 	mkdir -p third_party/src/$(ORG_PATH)
 	ln -s ../../../.. third_party/src/$(REPO_PATH)
 
-test:
+test: deps
 	go run third_party.go test -v $(REPO_PATH) \
 		$(REPO_PATH)/content_api \
 		$(REPO_PATH)/need_api \
 		$(REPO_PATH)/performance_platform \
 		$(REPO_PATH)/request
 
-build:
+build: deps
 	go run third_party.go build -o $(BINARY)

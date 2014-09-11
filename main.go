@@ -14,11 +14,12 @@ import (
 )
 
 var (
-	appDomain = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
-	port      = getEnvDefault("HTTP_PORT", "3000")
+	appDomain    = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
+	port         = getEnvDefault("HTTP_PORT", "3000")
+	httpProtocol = getHttpProtocol(appDomain)
 
-	contentAPI = "https://contentapi." + appDomain
-	needAPI    = "https://need-api." + appDomain
+	contentAPI = httpProtocol + "://contentapi." + appDomain
+	needAPI    = httpProtocol + "://need-api." + appDomain
 
 	renderer = render.New(render.Options{})
 )
@@ -95,4 +96,12 @@ func getEnvDefault(key string, defaultVal string) string {
 	}
 
 	return val
+}
+
+func getHttpProtocol(appDomain string) string {
+	if appDomain == "dev.gov.uk" {
+		return "http"
+	}
+
+	return "https"
 }

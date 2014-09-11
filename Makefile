@@ -28,3 +28,6 @@ build: deps
 
 run: build
 	./metadata-api
+
+clean:
+	rm -rf bin metadata-api third_party

@@ -146,6 +146,44 @@ var _ = Describe("Info", func() {
 			Expect(metadata.Needs[0].ID).To(Equal(100019))
 		})
 	})
+
+	Describe("querying for a slug that doesn't exist", func() {
+		BeforeEach(func() {
+			testContentApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+				if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenContentAPI {
+					w.WriteHeader(http.StatusUnauthorized)
+					fmt.Fprintln(w, "Not authorised!")
+					return
+				}
+
+				w.WriteHeader(http.StatusNotFound)
+				fmt.Fprintln(w, contentAPIResponse)
+			})
+
+			testServer = testHandlerServer(InfoHandler(
+				testContentApi.URL, testNeedApi.URL, config))
+		})
+
+		AfterEach(func() {
+			testContentApi.Close()
+		})
+
+		It("returns with a status of not found if there's no slug in the Content API", func() {
+			response, err := getSlug(testServer.URL, "not-found-slug")
+			Expect(err).To(BeNil())
+			Expect(response.StatusCode).To(Equal(http.StatusNotFound))
+
+			body, err := readResponseBody(response)
+			Expect(err).To(BeNil())
+
+			metadata, err := ParseMetadataResponse([]byte(body))
+			Expect(err).To(BeNil())
+
+			Expect(metadata.ResponseInfo.Status).To(Equal("not found"))
+			Expect(metadata.Artefact).To(BeNil())
+			Expect(metadata.Needs).To(BeNil())
+		})
+	})
 })
 
 func getSlug(serverURL, slug string) (*http.Response, error) {

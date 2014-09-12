@@ -11,6 +11,7 @@ import (
 
 	"github.com/alphagov/metadata-api/content_api"
 	"github.com/alphagov/metadata-api/need_api"
+	"github.com/alphagov/metadata-api/request"
 )
 
 var (
@@ -41,6 +42,11 @@ func InfoHandler(contentAPI, needAPI string, config *Config) func(http.ResponseW
 
 		artefact, err := content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 		if err != nil {
+			if err == request.NotFoundError {
+				renderError(w, http.StatusNotFound, err.Error())
+				return
+			}
+
 			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
 			return
 		}

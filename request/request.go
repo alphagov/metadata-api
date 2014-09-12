@@ -1,9 +1,14 @@
 package request
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
+)
+
+var (
+	NotFoundError error = errors.New("not found")
 )
 
 func NewRequest(url, bearerToken string) (*http.Response, error) {
@@ -17,7 +22,16 @@ func NewRequest(url, bearerToken string) (*http.Response, error) {
 	request.Header.Add("Authorization", "Bearer "+bearerToken)
 	request.Header.Add("Accept", "application/json")
 
-	return client.Do(request)
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode == http.StatusNotFound {
+		return nil, NotFoundError
+	}
+
+	return response, err
 }
 
 func ReadResponseBody(response *http.Response) (string, error) {

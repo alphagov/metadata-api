@@ -25,6 +25,10 @@ var (
 	performanceAPI = "https://www.performance.service.gov.uk"
 
 	renderer = render.New(render.Options{})
+
+	loggingMiddleware = negronilogrus.NewCustomMiddleware(
+		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api")
+	logging = loggingMiddleware.Logger
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +66,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			needs = append(needs, need)
 		}
 
-		performance, err := performance_platform.FetchSlugStatistics(performanceAPI, slug)
+		performance, err := performance_platform.FetchSlugStatistics(performanceAPI, slug, logging)
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
 			return
@@ -80,10 +84,6 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 }
 
 func main() {
-	loggingMiddleware := negronilogrus.NewCustomMiddleware(
-		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api")
-	logging := loggingMiddleware.Logger
-
 	config, err := ReadConfig("config.json")
 	if err != nil {
 		logging.Fatalln("Couldn't load configuration", err)

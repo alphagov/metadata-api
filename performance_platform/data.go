@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/alphagov/metadata-api/request"
 )
 
@@ -42,9 +43,14 @@ func ParseBackdropResponse(response []byte) (*Backdrop, error) {
 	return backdropResponse, nil
 }
 
-func FetchSlugStatistics(performanceAPI, slug string) (*Backdrop, error) {
-	escapedSlug := url.QueryEscape("/" + slug)
+func FetchSlugStatistics(performanceAPI, slug string, log *logrus.Logger) (*Backdrop, error) {
+	escapedSlug := url.QueryEscape(slug)
 	statisticsURL := performanceAPI + pageStatisticsURL + "?filter_by=pagePath:" + escapedSlug
+
+	log.WithFields(logrus.Fields{
+		"escapedSlug":   escapedSlug,
+		"statisticsURL": statisticsURL,
+	}).Debug("Requesting performance data for slug")
 
 	backdropResponse, err := request.NewRequest(statisticsURL, "EMPTY")
 	if err != nil {

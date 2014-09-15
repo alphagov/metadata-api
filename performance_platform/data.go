@@ -30,8 +30,8 @@ type Data struct {
 }
 
 type Backdrop struct {
-	Data    []Data "json:`data`"
-	Warning string "json:`warning`"
+	Data    []Data `json:"data"`
+	Warning string `json:"warning"`
 }
 
 func ParseBackdropResponse(response []byte) (*Backdrop, error) {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/alphagov/metadata-api/content_api"
 	"github.com/alphagov/metadata-api/need_api"
+	"github.com/alphagov/metadata-api/performance_platform"
 )
 
 type ResponseInfo struct {
@@ -12,9 +13,10 @@ type ResponseInfo struct {
 }
 
 type Metadata struct {
-	Artefact     *content_api.Artefact `json:"artefact"`
-	Needs        []*need_api.Need      `json:"needs"`
-	ResponseInfo *ResponseInfo         `json:"_response_info"`
+	Artefact     *content_api.Artefact          `json:"artefact"`
+	Needs        []*need_api.Need               `json:"needs"`
+	Performance  *performance_platform.Backdrop `json:"performance"`
+	ResponseInfo *ResponseInfo                  `json:"_response_info"`
 }
 
 func ParseMetadataResponse(response []byte) (*Metadata, error) {

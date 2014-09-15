@@ -13,8 +13,8 @@ import (
 
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse     string
-		testServer, testContentAPI, testNeedAPI *httptest.Server
+		contentAPIResponse, needAPIResponse, performanceAPIResponse string
+		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
 
 		config = &Config{
 			BearerTokenContentAPI: "some-secret-content-api-bearer-string",
@@ -43,9 +43,13 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, needAPIResponse)
 		})
+		testPerformanceAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintln(w, performanceAPIResponse)
+		})
 
 		testServer = testHandlerServer(InfoHandler(
-			testContentAPI.URL, testNeedAPI.URL, config))
+			testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
 	})
 
 	AfterEach(func() {
@@ -55,6 +59,10 @@ var _ = Describe("Info", func() {
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
+		performanceAPIResponse = `{
+          "data": [],
+          "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
+        }`
 	})
 
 	Describe("no slug provided", func() {
@@ -127,9 +135,31 @@ var _ = Describe("Info", func() {
   "out_of_scope_reason": null,
   "duplicate_of": null
 }`
+			performanceAPIResponse = `{
+"data": [
+  {
+    "_day_start_at": "2014-07-14T00:00:00+00:00",
+    "_hour_start_at": "2014-07-14T00:00:00+00:00",
+    "_id": "cGFnZS1zdGF0aXN0aWNzXzIwMTQwNzE0MDAwMDAwX2RheV8vaW50ZWxsZWN0dWFsLXByb3BlcnR5LWFuLW92ZXJ2aWV3",
+    "_month_start_at": "2014-07-01T00:00:00+00:00",
+    "_quarter_start_at": "2014-07-01T00:00:00+00:00",
+    "_timestamp": "2014-07-14T00:00:00+00:00",
+    "_updated_at": "2014-09-12T13:07:01.712000+00:00",
+    "_week_start_at": "2014-07-14T00:00:00+00:00",
+    "_year_start_at": "2014-01-01T00:00:00+00:00",
+    "avgTimeOnPage": 46.25,
+    "dataType": "page-statistics",
+    "humanId": "page-statistics_20140714000000_day_/intellectual-property-an-overview",
+    "pagePath": "/intellectual-property-an-overview",
+    "timeSpan": "day",
+    "uniquePageviews": 102
+  }
+],
+"warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
+}`
 		})
 
-		It("returns a metadata response with the Artefact and Needs exposed", func() {
+		It("returns a metadata response with the Artefact, Needs, and Performance Data exposed", func() {
 			response, err := getSlug(testServer.URL, "dummy-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -141,9 +171,14 @@ var _ = Describe("Info", func() {
 			Expect(err).To(BeNil())
 
 			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
+
 			Expect(metadata.Artefact.Details.NeedIDs).To(Equal([]string{"100567"}))
+
 			Expect(metadata.Needs).To(HaveLen(1))
 			Expect(metadata.Needs[0].ID).To(Equal(100019))
+
+			Expect(metadata.Performance.Data[0].PagePath).To(Equal("/intellectual-property-an-overview"))
+			Expect(metadata.Performance.Data[0].UniquePageViews).To(Equal(float32(102)))
 		})
 	})
 
@@ -161,7 +196,7 @@ var _ = Describe("Info", func() {
 			})
 
 			testServer = testHandlerServer(InfoHandler(
-				testContentAPI.URL, testNeedAPI.URL, config))
+				testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
 		})
 
 		AfterEach(func() {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/alphagov/metadata-api/content_api"
 	"github.com/alphagov/metadata-api/need_api"
+	"github.com/alphagov/metadata-api/performance_platform"
 	"github.com/alphagov/metadata-api/request"
 )
 
@@ -19,8 +20,9 @@ var (
 	port         = getEnvDefault("HTTP_PORT", "3000")
 	httpProtocol = getHttpProtocol(appDomain)
 
-	contentAPI = httpProtocol + "://contentapi." + appDomain
-	needAPI    = httpProtocol + "://need-api." + appDomain
+	contentAPI     = httpProtocol + "://contentapi." + appDomain
+	needAPI        = httpProtocol + "://need-api." + appDomain
+	performanceAPI = "https://www.performance.service.gov.uk"
 
 	renderer = render.New(render.Options{})
 )
@@ -29,7 +31,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, needAPI string, config *Config) func(http.ResponseWriter, *http.Request) {
+func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var needs []*need_api.Need
 
@@ -60,9 +62,16 @@ func InfoHandler(contentAPI, needAPI string, config *Config) func(http.ResponseW
 			needs = append(needs, need)
 		}
 
+		performance, err := performance_platform.FetchSlugStatistics(performanceAPI, slug)
+		if err != nil {
+			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
+			return
+		}
+
 		metadata := &Metadata{
 			Artefact:     artefact,
 			Needs:        needs,
+			Performance:  performance,
 			ResponseInfo: &ResponseInfo{Status: "ok"},
 		}
 
@@ -82,7 +91,8 @@ func main() {
 
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
-	httpMux.HandleFunc("/info/", InfoHandler(contentAPI, needAPI, config))
+	httpMux.HandleFunc("/info/", InfoHandler(
+		contentAPI, needAPI, performanceAPI, config))
 
 	middleware := negroni.New()
 	middleware.Use(loggingMiddleware)

@@ -2,7 +2,14 @@ package performance_platform
 
 import (
 	"encoding/json"
+	"net/url"
 	"time"
+
+	"github.com/alphagov/metadata-api/request"
+)
+
+var (
+	pageStatisticsURL = "/data/govuk-info/page-statistics"
 )
 
 type Data struct {
@@ -13,6 +20,7 @@ type Data struct {
 	SearchUniquesSum float32 `json:"searchUniques:sum"`
 	TimeSpan         string  `json:"timeSpan"`
 	Type             string  `json:"dataType"`
+	UniquePageViews  float32 `json:"uniquePageViews"`
 
 	// Underscore fields mean something in backdrop?
 	ID        string    `json:"_id"`
@@ -32,4 +40,26 @@ func ParseBackdropResponse(response []byte) (*Backdrop, error) {
 	}
 
 	return backdropResponse, nil
+}
+
+func FetchSlugStatistics(performanceAPI, slug string) (*Backdrop, error) {
+	escapedSlug := url.QueryEscape("/" + slug)
+	statisticsURL := performanceAPI + pageStatisticsURL + "?filter_by=pagePath:" + escapedSlug
+
+	backdropResponse, err := request.NewRequest(statisticsURL, "EMPTY")
+	if err != nil {
+		return nil, err
+	}
+
+	backdropBody, err := request.ReadResponseBody(backdropResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	backdrop, err := ParseBackdropResponse([]byte(backdropBody))
+	if err != nil {
+		return nil, err
+	}
+
+	return backdrop, nil
 }

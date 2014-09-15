@@ -45,4 +45,8 @@ var _ = Describe("Data", func() {
 			}))
 		})
 	})
+
+	Describe("FetchSlugStatistics", func() {
+
+	})
 })

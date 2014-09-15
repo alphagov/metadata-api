@@ -14,7 +14,7 @@ import (
 var _ = Describe("Info", func() {
 	var (
 		contentAPIResponse, needAPIResponse     string
-		testServer, testContentApi, testNeedApi *httptest.Server
+		testServer, testContentAPI, testNeedAPI *httptest.Server
 
 		config = &Config{
 			BearerTokenContentAPI: "some-secret-content-api-bearer-string",
@@ -23,7 +23,7 @@ var _ = Describe("Info", func() {
 	)
 
 	BeforeEach(func() {
-		testContentApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+		testContentAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenContentAPI {
 				w.WriteHeader(http.StatusUnauthorized)
 				fmt.Fprintln(w, "Not authorised!")
@@ -33,7 +33,7 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, contentAPIResponse)
 		})
-		testNeedApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+		testNeedAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenNeedAPI {
 				w.WriteHeader(http.StatusUnauthorized)
 				fmt.Fprintln(w, "Not authorised!")
@@ -45,13 +45,13 @@ var _ = Describe("Info", func() {
 		})
 
 		testServer = testHandlerServer(InfoHandler(
-			testContentApi.URL, testNeedApi.URL, config))
+			testContentAPI.URL, testNeedAPI.URL, config))
 	})
 
 	AfterEach(func() {
 		testServer.Close()
-		testContentApi.Close()
-		testNeedApi.Close()
+		testContentAPI.Close()
+		testNeedAPI.Close()
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
@@ -149,7 +149,7 @@ var _ = Describe("Info", func() {
 
 	Describe("querying for a slug that doesn't exist", func() {
 		BeforeEach(func() {
-			testContentApi = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
+			testContentAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 				if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenContentAPI {
 					w.WriteHeader(http.StatusUnauthorized)
 					fmt.Fprintln(w, "Not authorised!")
@@ -161,11 +161,11 @@ var _ = Describe("Info", func() {
 			})
 
 			testServer = testHandlerServer(InfoHandler(
-				testContentApi.URL, testNeedApi.URL, config))
+				testContentAPI.URL, testNeedAPI.URL, config))
 		})
 
 		AfterEach(func() {
-			testContentApi.Close()
+			testContentAPI.Close()
 		})
 
 		It("returns with a status of not found if there's no slug in the Content API", func() {

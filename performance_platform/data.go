@@ -11,33 +11,6 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-var (
-	pageStatisticsURL = "/data/govuk-info/page-statistics"
-)
-
-type Data struct {
-	HumanID          string  `json:"humanId"`
-	PagePath         string  `json:"pagePath"`
-	SearchKeyword    string  `json:"searchKeyword"`
-	SearchUniques    float32 `json:"searchUniques"`
-	SearchUniquesSum float32 `json:"searchUniques:sum"`
-	TimeSpan         string  `json:"timeSpan"`
-	Type             string  `json:"dataType"`
-	UniquePageViews  float32 `json:"uniquePageViews"`
-
-	// Underscore fields mean something in backdrop?
-	ID        string    `json:"_id"`
-	Count     float32   `json:"_count"`
-	Timestamp time.Time `json:"_timestamp"`
-}
-
-type Backdrop struct {
-	Data    []Data `json:"data"`
-	Warning string `json:"warning"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
 type Query struct {
 	FilterBy []string `url:"filter_by,omitempty"`
 	Collect  []string `url:"collect,omitempty"`
@@ -50,25 +23,32 @@ type Query struct {
 	EndAt   time.Time `url:"start_at,omitempty"`
 }
 
-func ParseBackdropResponse(response []byte) (*Backdrop, error) {
-	backdropResponse := &Backdrop{}
-	if err := json.Unmarshal(response, &backdropResponse); err != nil {
-		return nil, err
-	}
+type Client struct {
+	URL string
 
-	if backdropResponse.Status == "error" {
-		return nil, errors.New(backdropResponse.Message)
-	}
-
-	return backdropResponse, nil
+	log *logrus.Logger
 }
 
-func BuildURL(base, dataGroup, dataType string, backdropQuery Query) string {
-	path := fmt.Sprintf("/data/%s/%s", dataGroup, dataType)
-	values, _ := query.Values(backdropQuery)
+func NewClient(url string, logger *logrus.Logger) *Client {
+	return &Client{
+		URL: url,
+		log: logger,
+	}
+}
+
+type BackdropResponse struct {
+	Data    []interface{} `json:"data"`
+	Warning string        `json:"warning,omitempty"`
+	Status  string        `json:"status,omitempty"`
+	Message string        `json:"message,omitempty"`
+}
+
+func (client *Client) BuildURL(dataGroup, dataType string, dataQuery Query) string {
+	url := fmt.Sprintf("%s/data/%s/%s", client.URL, dataGroup, dataType)
+
+	values, _ := query.Values(dataQuery)
 	queryParameters := values.Encode()
 
-	url := base + path
 	if len(queryParameters) > 1 {
 		url += "?" + queryParameters
 	}
@@ -76,18 +56,14 @@ func BuildURL(base, dataGroup, dataType string, backdropQuery Query) string {
 	return url
 }
 
-func FetchSlugStatistics(performanceAPI, slug string, log *logrus.Logger) (*Backdrop, error) {
-	query := Query{
-		FilterBy: []string{"pagePath:" + slug},
-	}
-	statisticsURL := BuildURL(performanceAPI, "govuk-info", "page-statistics", query)
+func (client *Client) Fetch(dataGroup, dataType string, dataQuery Query) (*BackdropResponse, error) {
+	url := client.BuildURL(dataGroup, dataType, dataQuery)
 
-	log.WithFields(logrus.Fields{
-		"escapedSlug":   slug,
-		"statisticsURL": statisticsURL,
+	client.log.WithFields(logrus.Fields{
+		"url": url,
 	}).Debug("Requesting performance data for slug")
 
-	backdropResponse, err := request.NewRequest(statisticsURL, "EMPTY")
+	backdropResponse, err := request.NewRequest(url, "EMPTY")
 	if err != nil {
 		return nil, err
 	}
@@ -103,4 +79,17 @@ func FetchSlugStatistics(performanceAPI, slug string, log *logrus.Logger) (*Back
 	}
 
 	return backdrop, nil
+}
+
+func ParseBackdropResponse(response []byte) (*BackdropResponse, error) {
+	backdropResponse := &BackdropResponse{}
+	if err := json.Unmarshal(response, &backdropResponse); err != nil {
+		return nil, err
+	}
+
+	if backdropResponse.Status == "error" {
+		return nil, errors.New(backdropResponse.Message)
+	}
+
+	return backdropResponse, nil
 }

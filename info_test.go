@@ -60,10 +60,7 @@ var _ = Describe("Info", func() {
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
-		performanceAPIResponse = `{
-          "data": [],
-          "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
-        }`
+		performanceAPIResponse = `{"data":[]}`
 	})
 
 	Describe("no slug provided", func() {
@@ -99,7 +96,7 @@ var _ = Describe("Info", func() {
 			performanceAPIResponse = string(performanceAPIResponseBytes)
 		})
 
-		It("returns a metadata response with the Artefact, Needs, and Performance Data exposed", func() {
+		It("returns a metadata response with the Artefact and Needs exposed", func() {
 			response, err := getSlug(testServer.URL, "dummy-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -116,9 +113,6 @@ var _ = Describe("Info", func() {
 
 			Expect(metadata.Needs).To(HaveLen(1))
 			Expect(metadata.Needs[0].ID).To(Equal(100019))
-
-			Expect(metadata.Performance.Data[0].PagePath).To(Equal("/intellectual-property-an-overview"))
-			Expect(metadata.Performance.Data[0].UniquePageViews).To(Equal(float32(102)))
 		})
 	})
 

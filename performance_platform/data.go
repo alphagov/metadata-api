@@ -2,6 +2,7 @@ package performance_platform
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -33,6 +34,8 @@ type Data struct {
 type Backdrop struct {
 	Data    []Data `json:"data"`
 	Warning string `json:"warning"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }
 
 type Query struct {
@@ -51,6 +54,10 @@ func ParseBackdropResponse(response []byte) (*Backdrop, error) {
 	backdropResponse := &Backdrop{}
 	if err := json.Unmarshal(response, &backdropResponse); err != nil {
 		return nil, err
+	}
+
+	if backdropResponse.Status == "error" {
+		return nil, errors.New(backdropResponse.Message)
 	}
 
 	return backdropResponse, nil

@@ -44,6 +44,18 @@ var _ = Describe("Data", func() {
 				Warning: "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate.",
 			}))
 		})
+
+		It("parses a Backdrop API response and errors appropriately", func() {
+			exampleResponse := strings.TrimSpace(`
+{
+  "status": "error",
+  "message": "Ahh an error happened"
+}`)
+
+			backdrop, err := ParseBackdropResponse([]byte(exampleResponse))
+			Expect(err).To(MatchError("Ahh an error happened"))
+			Expect(backdrop).To(BeNil())
+		})
 	})
 
 	Describe("BuildURL", func() {

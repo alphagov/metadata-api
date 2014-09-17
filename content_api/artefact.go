@@ -6,10 +6,15 @@ import (
 	"github.com/alphagov/metadata-api/request"
 )
 
+type Part struct {
+	WebURL  string `json:"web_url"`
+}
+
 type Detail struct {
 	NeedIDs             []string `json:"need_ids"`
 	BusinessProposition bool     `json:"business_proposition"`
 	Description         string   `json:"description"`
+	Parts               []Part   `json:"parts"`
 }
 
 type Artefact struct {

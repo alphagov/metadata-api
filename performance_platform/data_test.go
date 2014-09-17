@@ -46,6 +46,19 @@ var _ = Describe("Data", func() {
 		})
 	})
 
+	Describe("BuildURL", func() {
+		It("Should return a url with no parameters", func() {
+			Expect(BuildURL("http://perf", "govuk-info", "page-statistics", Query{})).
+				To(Equal("http://perf/data/govuk-info/page-statistics"))
+		})
+
+		It("Should add filter by parameters", func() {
+			Expect(BuildURL("http://perf", "govuk-info", "page-statistics", Query{
+				FilterBy: []string{"pagePath:/bank-holidays", "bar:foo"},
+			})).To(Equal("http://perf/data/govuk-info/page-statistics?filter_by=pagePath%3A%2Fbank-holidays&filter_by=bar%3Afoo"))
+		})
+	})
+
 	Describe("FetchSlugStatistics", func() {
 
 	})

@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "_day_start_at": "2014-07-14T00:00:00+00:00",
+      "_hour_start_at": "2014-07-14T00:00:00+00:00",
+      "_id": "cGFnZS1zdGF0aXN0aWNzXzIwMTQwNzE0MDAwMDAwX2RheV8vaW50ZWxsZWN0dWFsLXByb3BlcnR5LWFuLW92ZXJ2aWV3",
+      "_month_start_at": "2014-07-01T00:00:00+00:00",
+      "_quarter_start_at": "2014-07-01T00:00:00+00:00",
+      "_timestamp": "2014-07-14T00:00:00+00:00",
+      "_updated_at": "2014-09-12T13:07:01.712000+00:00",
+      "_week_start_at": "2014-07-14T00:00:00+00:00",
+      "_year_start_at": "2014-01-01T00:00:00+00:00",
+      "avgTimeOnPage": 46.25,
+      "dataType": "page-statistics",
+      "humanId": "page-statistics_20140714000000_day_/intellectual-property-an-overview",
+      "pagePath": "/intellectual-property-an-overview",
+      "timeSpan": "day",
+      "uniquePageviews": 102
+    }
+  ],
+  "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
+}

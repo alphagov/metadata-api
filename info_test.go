@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 
@@ -89,74 +90,13 @@ var _ = Describe("Info", func() {
 
 	Describe("fetching a valid slug", func() {
 		BeforeEach(func() {
-			contentAPIResponse = `{
-  "id": "https://www.gov.uk/api/driving-licence-fees.json",
-  "web_url": "https://www.gov.uk/driving-licence-fees",
-  "title": "Driving licence fees",
-  "format": "answer",
-  "updated_at": "2014-06-27T14:21:48+01:00",
-  "details": {
-    "need_ids": ["100567"],
-    "language": "en",
-    "body": "foo"
-  },
-  "_response_info": {
-    "status": "ok"
-  }
-}`
-			needAPIResponse = `{
-  "_response_info": {
-    "status": "ok"
-  },
-  "id": 100019,
-  "role": "Someone carrying out a clinical trial",
-  "goal": "maintain my clinical trial authorisation",
-  "benefit": "ensure that my clinical trial continues to meet MHRA requirements and the appropriate legal criteria",
-  "organisation_ids": ["medicines-and-healthcare-products-regulatory-agency"],
-  "organisations": [{
-    "id": "medicines-and-healthcare-products-regulatory-agency",
-    "name": "Medicines and Healthcare Products Regulatory Agency",
-    "govuk_status": "joining",
-    "abbreviation": "MHRA",
-    "parent_ids": ["department-of-health"],
-    "child_ids": []
-  }],
-  "applies_to_all_organisations": false,
-  "justifications": ["The government is legally obliged to provide it", "It's something that people can do or it's something people need to know before they can do something that's regulated by/related to government"],
-  "impact": null,
-  "met_when": null,
-  "yearly_user_contacts": null,
-  "yearly_site_views": null,
-  "yearly_need_views": null,
-  "yearly_searches": null,
-  "other_evidence": null,
-  "legislation": null,
-  "in_scope": null,
-  "out_of_scope_reason": null,
-  "duplicate_of": null
-}`
-			performanceAPIResponse = `{
-"data": [
-  {
-    "_day_start_at": "2014-07-14T00:00:00+00:00",
-    "_hour_start_at": "2014-07-14T00:00:00+00:00",
-    "_id": "cGFnZS1zdGF0aXN0aWNzXzIwMTQwNzE0MDAwMDAwX2RheV8vaW50ZWxsZWN0dWFsLXByb3BlcnR5LWFuLW92ZXJ2aWV3",
-    "_month_start_at": "2014-07-01T00:00:00+00:00",
-    "_quarter_start_at": "2014-07-01T00:00:00+00:00",
-    "_timestamp": "2014-07-14T00:00:00+00:00",
-    "_updated_at": "2014-09-12T13:07:01.712000+00:00",
-    "_week_start_at": "2014-07-14T00:00:00+00:00",
-    "_year_start_at": "2014-01-01T00:00:00+00:00",
-    "avgTimeOnPage": 46.25,
-    "dataType": "page-statistics",
-    "humanId": "page-statistics_20140714000000_day_/intellectual-property-an-overview",
-    "pagePath": "/intellectual-property-an-overview",
-    "timeSpan": "day",
-    "uniquePageviews": 102
-  }
-],
-"warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
-}`
+			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response.json")
+			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
+			performanceAPIResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_response.json")
+
+			contentAPIResponse = string(contentAPIResponseBytes)
+			needAPIResponse = string(needAPIResponseBytes)
+			performanceAPIResponse = string(performanceAPIResponseBytes)
 		})
 
 		It("returns a metadata response with the Artefact, Needs, and Performance Data exposed", func() {

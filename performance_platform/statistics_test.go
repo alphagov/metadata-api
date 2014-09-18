@@ -58,6 +58,50 @@ var _ = Describe("Statistics", func() {
 ]
 }`),
 				),
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/data/govuk-info/search-terms"),
+					ghttp.RespondWith(http.StatusOK, `
+{
+"data": [
+  {
+    "_count": 8,
+    "_group_count": 8,
+    "searchKeyword": "employer access",
+    "searchUniques:sum": 126,
+    "values": [{
+      "_count": 1,
+      "searchUniques:sum": 126,
+      "_end_at": "2014-09-03T00:00:00+00:00",
+      "_start_at": "2014-09-02T00:00:00+00:00"
+    }]
+  },
+  {
+    "_count": 3,
+    "_group_count": 3,
+    "searchKeyword": "pupil premium",
+    "searchUniques:sum": 45,
+    "values": [{
+      "_count": 1,
+      "searchUniques:sum": 45,
+      "_end_at": "2014-09-03T00:00:00+00:00",
+      "_start_at": "2014-09-02T00:00:00+00:00"
+    }]
+  },
+  {
+    "_count": 4,
+    "_group_count": 4,
+    "searchKeyword": "s2s",
+    "searchUniques:sum": 104,
+    "values": [{
+      "_count": 1,
+      "searchUniques:sum": 104,
+      "_end_at": "2014-09-03T00:00:00+00:00",
+      "_start_at": "2014-09-02T00:00:00+00:00"
+    }]
+  }
+]
+}`),
+				),
 			)
 
 			statistics, err := client.SlugStatistics("/foo")
@@ -65,6 +109,7 @@ var _ = Describe("Statistics", func() {
 			Expect(statistics).ToNot(BeNil())
 			Expect(len(statistics.PageViews)).To(Equal(1))
 			Expect(len(statistics.Searches)).To(Equal(1))
+			Expect(len(statistics.SearchTerms)).To(Equal(3))
 			Expect(statistics.PageViews[0].Value).To(Equal(25931))
 			Expect(statistics.Searches[0].Value).To(Equal(71))
 
@@ -77,6 +122,17 @@ var _ = Describe("Statistics", func() {
 			Expect(err).To(BeNil())
 			Expect(statistics.Searches[0].Timestamp).
 				To(Equal(searchesTimestamp))
+
+			Expect(statistics.SearchTerms[0].Keyword).To(Equal("employer access"))
+			Expect(statistics.SearchTerms[0].TotalSearches).To(Equal(126))
+			Expect(statistics.SearchTerms[1].Keyword).To(Equal("s2s"))
+			Expect(statistics.SearchTerms[1].TotalSearches).To(Equal(104))
+			Expect(statistics.SearchTerms[2].Keyword).To(Equal("pupil premium"))
+			Expect(statistics.SearchTerms[2].TotalSearches).To(Equal(45))
+
+			Expect(len(statistics.SearchTerms[0].Searches)).To(Equal(1))
+			Expect(statistics.SearchTerms[0].Searches[0].Value).To(Equal(126))
+			Expect(statistics.SearchTerms[0].Searches[0].Timestamp).To(Equal(searchesTimestamp))
 		})
 	})
 

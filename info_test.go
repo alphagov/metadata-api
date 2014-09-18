@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse, performanceAPIPageviewsResponse, performanceAPISearchesResponse string
+		contentAPIResponse, needAPIResponse, pageviewsResponse, searchesResponse, termsResponse string
 
 		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
 
@@ -49,10 +49,14 @@ var _ = Describe("Info", func() {
 		testPerformanceAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(r.URL.Path, "page-statistics") {
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintln(w, performanceAPIPageviewsResponse)
+				fmt.Fprintln(w, pageviewsResponse)
+			} else if strings.Contains(r.URL.Path, "search-terms") &&
+				strings.Contains(r.URL.RawQuery, "group_by") {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintln(w, termsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") {
 				w.WriteHeader(http.StatusOK)
-				fmt.Fprintln(w, performanceAPISearchesResponse)
+				fmt.Fprintln(w, searchesResponse)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -69,8 +73,9 @@ var _ = Describe("Info", func() {
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
-		performanceAPISearchesResponse = `{"data":[]}`
-		performanceAPIPageviewsResponse = `{"data":[]}`
+		searchesResponse = `{"data":[]}`
+		pageviewsResponse = `{"data":[]}`
+		termsResponse = `{"data":[]}`
 	})
 
 	Describe("no slug provided", func() {
@@ -99,13 +104,15 @@ var _ = Describe("Info", func() {
 		BeforeEach(func() {
 			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response.json")
 			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
-			performanceAPIPageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
-			performanceAPISearchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
 
 			contentAPIResponse = string(contentAPIResponseBytes)
 			needAPIResponse = string(needAPIResponseBytes)
-			performanceAPIPageviewsResponse = string(performanceAPIPageviewsResponseBytes)
-			performanceAPISearchesResponse = string(performanceAPISearchesResponseBytes)
+			pageviewsResponse = string(pageviewsResponseBytes)
+			searchesResponse = string(searchesResponseBytes)
+			termsResponse = string(termsResponseBytes)
 		})
 
 		It("returns a metadata response with the Artefact, Needs and Performance data exposed", func() {
@@ -131,6 +138,9 @@ var _ = Describe("Info", func() {
 			Expect(metadata.Performance.Searches).To(HaveLen(3))
 			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
 			Expect(metadata.Performance.Searches[2].Value).To(Equal(16))
+			Expect(metadata.Performance.SearchTerms).To(HaveLen(6))
+			Expect(metadata.Performance.SearchTerms[1].Keyword).To(Equal("s2s"))
+			Expect(metadata.Performance.SearchTerms[1].Searches).To(HaveLen(1))
 		})
 	})
 

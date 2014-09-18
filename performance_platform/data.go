@@ -13,6 +13,7 @@ import (
 
 type Query struct {
 	FilterBy []string `url:"filter_by,omitempty"`
+	GroupBy  []string `url:"group_by,omitempty"`
 	Collect  []string `url:"collect,omitempty"`
 	SortBy   []string `url:"sort_by,omitempty"`
 

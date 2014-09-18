@@ -1,0 +1,89 @@
+{
+    "data": [
+        {
+            "_count": 8,
+            "_group_count": 8,
+            "searchKeyword": "employer access",
+            "searchUniques:sum": 126,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 126
+                }
+            ]
+        },
+        {
+            "_count": 3,
+            "_group_count": 3,
+            "searchKeyword": "pupil premium",
+            "searchUniques:sum": 45,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 45
+                }
+            ]
+        },
+        {
+            "_count": 4,
+            "_group_count": 4,
+            "searchKeyword": "s2s",
+            "searchUniques:sum": 104,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 104
+                }
+            ]
+        },
+        {
+            "_count": 1,
+            "_group_count": 1,
+            "searchKeyword": "secure access",
+            "searchUniques:sum": 11,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 11
+                }
+            ]
+        },
+        {
+            "_count": 1,
+            "_group_count": 1,
+            "searchKeyword": "sen",
+            "searchUniques:sum": 11,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 11
+                }
+            ]
+        },
+        {
+            "_count": 2,
+            "_group_count": 2,
+            "searchKeyword": "skills test",
+            "searchUniques:sum": 27,
+            "values": [
+                {
+                    "_count": 1,
+                    "_end_at": "2014-07-26T00:00:00+00:00",
+                    "_start_at": "2014-07-25T00:00:00+00:00",
+                    "searchUniques:sum": 27
+                }
+            ]
+        }
+    ],
+    "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
+}

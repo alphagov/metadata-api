@@ -2,6 +2,7 @@ package performance_platform
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -10,7 +11,15 @@ import (
 type Statistics struct {
 	PageViews   []Statistic `json:"page_views"`
 	Searches    []Statistic `json:"searches"`
-	SearchTerms []string    `json:"search_terms"`
+	SearchTerms SearchTerms `json:"search_terms"`
+}
+
+type SearchTerms []SearchTerm
+
+type SearchTerm struct {
+	Keyword       string
+	TotalSearches int
+	Searches      []Statistic
 }
 
 type Statistic struct {
@@ -18,8 +27,13 @@ type Statistic struct {
 	Value     int       `json:"value"`
 }
 
+func (terms SearchTerms) Len() int           { return len(terms) }
+func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], terms[i] }
+func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
+
 func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	var pageViews, searches []Statistic
+	var searchTerms SearchTerms
 
 	if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
 		FilterBy: []string{"pagePath:" + slug},
@@ -49,9 +63,30 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 		}
 	}
 
+	if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+		FilterBy: []string{"pagePath:" + slug},
+		GroupBy:  []string{"searchKeyword"},
+		Collect:  []string{"searchUniques:sum"},
+		Duration: 42,
+		Period:   "day",
+		EndAt:    now.BeginningOfDay().UTC(),
+	}); err != nil {
+		return nil, err
+	} else {
+		if searchTerms, err = parseSearchTerms(searchTermsResponse); err != nil {
+			return nil, err
+		} else {
+			sort.Sort(searchTerms)
+			if len(searchTerms) > 10 {
+				searchTerms = searchTerms[0:10]
+			}
+		}
+	}
+
 	return &Statistics{
-		PageViews: pageViews,
-		Searches:  searches,
+		PageViews:   pageViews,
+		Searches:    searches,
+		SearchTerms: searchTerms,
 	}, nil
 }
 
@@ -97,4 +132,39 @@ func parseSearches(response *BackdropResponse) ([]Statistic, error) {
 		}
 	}
 	return statistics, nil
+}
+
+func parseSearchTerms(response *BackdropResponse) (SearchTerms, error) {
+	var data []struct {
+		Keyword       string  `json:"searchKeyword"`
+		TotalSearches float32 `json:"searchUniques:sum"`
+
+		Values []struct {
+			Timestamp     time.Time `json:"_start_at"`
+			SearchUniques float32   `json:"searchUniques:sum"`
+		} `json:"values"`
+	}
+
+	err := json.Unmarshal(response.Data, &data)
+
+	if err != nil {
+		return SearchTerms{}, err
+	}
+
+	terms := make(SearchTerms, len(data))
+	for i, datum := range data {
+		statistics := make([]Statistic, len(datum.Values))
+		for j, value := range datum.Values {
+			statistics[j] = Statistic{
+				Timestamp: value.Timestamp,
+				Value:     int(value.SearchUniques),
+			}
+		}
+		terms[i] = SearchTerm{
+			Keyword:       datum.Keyword,
+			TotalSearches: int(datum.TotalSearches),
+			Searches:      statistics,
+		}
+	}
+	return terms, nil
 }

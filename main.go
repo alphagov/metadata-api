@@ -11,6 +11,7 @@ import (
 
 	"github.com/alphagov/metadata-api/content_api"
 	"github.com/alphagov/metadata-api/need_api"
+	"github.com/alphagov/metadata-api/performance_platform"
 	"github.com/alphagov/metadata-api/request"
 )
 
@@ -65,10 +66,17 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			needs = append(needs, need)
 		}
 
+		ppClient := performance_platform.NewClient(performanceAPI, logging)
+		performance, err := ppClient.SlugStatistics(slug)
+		if err != nil {
+			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
+			return
+		}
+
 		metadata := &Metadata{
 			Artefact:     artefact,
 			Needs:        needs,
-			Performance:  nil,
+			Performance:  performance,
 			ResponseInfo: &ResponseInfo{Status: "ok"},
 		}
 

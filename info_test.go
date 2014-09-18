@@ -96,7 +96,7 @@ var _ = Describe("Info", func() {
 			performanceAPIResponse = string(performanceAPIResponseBytes)
 		})
 
-		It("returns a metadata response with the Artefact and Needs exposed", func() {
+		It("returns a metadata response with the Artefact, Needs and Performance data exposed", func() {
 			response, err := getSlug(testServer.URL, "dummy-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusOK))
@@ -113,6 +113,9 @@ var _ = Describe("Info", func() {
 
 			Expect(metadata.Needs).To(HaveLen(1))
 			Expect(metadata.Needs[0].ID).To(Equal(100019))
+
+			Expect(metadata.Performance.PageViews).To(HaveLen(2))
+			Expect(metadata.Performance.PageViews[0].Value).To(Equal(25931))
 		})
 	})
 

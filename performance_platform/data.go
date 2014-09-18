@@ -20,7 +20,7 @@ type Query struct {
 	Period   string `url:"period,omitempty"`
 
 	StartAt time.Time `url:"start_at,omitempty"`
-	EndAt   time.Time `url:"start_at,omitempty"`
+	EndAt   time.Time `url:"end_at,omitempty"`
 }
 
 type Client struct {
@@ -37,10 +37,10 @@ func NewClient(url string, logger *logrus.Logger) *Client {
 }
 
 type BackdropResponse struct {
-	Data    []interface{} `json:"data"`
-	Warning string        `json:"warning,omitempty"`
-	Status  string        `json:"status,omitempty"`
-	Message string        `json:"message,omitempty"`
+	Data    json.RawMessage `json:"data"`
+	Warning string          `json:"warning,omitempty"`
+	Status  string          `json:"status,omitempty"`
+	Message string          `json:"message,omitempty"`
 }
 
 func (client *Client) BuildURL(dataGroup, dataType string, dataQuery Query) string {

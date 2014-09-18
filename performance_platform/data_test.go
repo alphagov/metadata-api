@@ -1,6 +1,7 @@
 package performance_platform_test
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -38,8 +39,13 @@ var _ = Describe("Data", func() {
 
 			backdrop, err := ParseBackdropResponse([]byte(exampleResponse))
 			Expect(err).To(BeNil())
-			Expect(len(backdrop.Data)).To(Equal(1))
+			Expect(backdrop).ToNot(BeNil())
 			Expect(backdrop.Warning).To(Equal("Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."))
+
+			var data []interface{}
+			err = json.Unmarshal(backdrop.Data, &data)
+			Expect(err).To(BeNil())
+			Expect(len(data)).To(Equal(1))
 		})
 
 		It("parses a Backdrop API response and errors appropriately", func() {
@@ -105,7 +111,11 @@ var _ = Describe("Data", func() {
 				response, err := client.Fetch("govuk-info", "page-statistics", Query{})
 				Expect(err).To(BeNil())
 				Expect(response).ToNot(BeNil())
-				Expect(len(response.Data)).To(Equal(1))
+
+				var data []interface{}
+				err = json.Unmarshal(response.Data, &data)
+				Expect(err).To(BeNil())
+				Expect(len(data)).To(Equal(1))
 			})
 		})
 	})

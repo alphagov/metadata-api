@@ -19,7 +19,7 @@ type Statistic struct {
 }
 
 func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
-	var pageViews []Statistic
+	var pageViews, searches []Statistic
 
 	if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
 		FilterBy: []string{"pagePath:" + slug},
@@ -35,8 +35,23 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 		}
 	}
 
+	if searchesResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+		FilterBy: []string{"pagePath:" + slug},
+		Collect:  []string{"searchUniques:sum"},
+		Duration: 42,
+		Period:   "day",
+		EndAt:    now.BeginningOfDay().UTC(),
+	}); err != nil {
+		return nil, err
+	} else {
+		if searches, err = parseSearches(searchesResponse); err != nil {
+			return nil, err
+		}
+	}
+
 	return &Statistics{
 		PageViews: pageViews,
+		Searches:  searches,
 	}, nil
 }
 
@@ -57,6 +72,28 @@ func parsePageViews(response *BackdropResponse) ([]Statistic, error) {
 		statistics[i] = Statistic{
 			Timestamp: datum.Timestamp,
 			Value:     int(datum.PageViews),
+		}
+	}
+	return statistics, nil
+}
+
+func parseSearches(response *BackdropResponse) ([]Statistic, error) {
+	var data []struct {
+		Timestamp     time.Time `json:"_start_at"`
+		SearchUniques float32   `json:"searchUniques:sum"`
+	}
+
+	err := json.Unmarshal(response.Data, &data)
+
+	if err != nil {
+		return []Statistic{}, err
+	}
+
+	statistics := make([]Statistic, len(data))
+	for i, datum := range data {
+		statistics[i] = Statistic{
+			Timestamp: datum.Timestamp,
+			Value:     int(datum.SearchUniques),
 		}
 	}
 	return statistics, nil

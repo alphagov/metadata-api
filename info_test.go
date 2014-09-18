@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	. "github.com/alphagov/metadata-api"
 
@@ -14,7 +15,8 @@ import (
 
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse, performanceAPIResponse string
+		contentAPIResponse, needAPIResponse, performanceAPIPageviewsResponse, performanceAPISearchesResponse string
+
 		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
 
 		config = &Config{
@@ -45,8 +47,15 @@ var _ = Describe("Info", func() {
 			fmt.Fprintln(w, needAPIResponse)
 		})
 		testPerformanceAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintln(w, performanceAPIResponse)
+			if strings.Contains(r.URL.Path, "page-statistics") {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintln(w, performanceAPIPageviewsResponse)
+			} else if strings.Contains(r.URL.Path, "search-terms") {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintln(w, performanceAPISearchesResponse)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
 		})
 
 		testServer = testHandlerServer(InfoHandler(
@@ -60,7 +69,8 @@ var _ = Describe("Info", func() {
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
-		performanceAPIResponse = `{"data":[]}`
+		performanceAPISearchesResponse = `{"data":[]}`
+		performanceAPIPageviewsResponse = `{"data":[]}`
 	})
 
 	Describe("no slug provided", func() {
@@ -89,11 +99,13 @@ var _ = Describe("Info", func() {
 		BeforeEach(func() {
 			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response.json")
 			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
-			performanceAPIResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_response.json")
+			performanceAPIPageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			performanceAPISearchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
 
 			contentAPIResponse = string(contentAPIResponseBytes)
 			needAPIResponse = string(needAPIResponseBytes)
-			performanceAPIResponse = string(performanceAPIResponseBytes)
+			performanceAPIPageviewsResponse = string(performanceAPIPageviewsResponseBytes)
+			performanceAPISearchesResponse = string(performanceAPISearchesResponseBytes)
 		})
 
 		It("returns a metadata response with the Artefact, Needs and Performance data exposed", func() {
@@ -116,6 +128,9 @@ var _ = Describe("Info", func() {
 
 			Expect(metadata.Performance.PageViews).To(HaveLen(2))
 			Expect(metadata.Performance.PageViews[0].Value).To(Equal(25931))
+			Expect(metadata.Performance.Searches).To(HaveLen(3))
+			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
+			Expect(metadata.Performance.Searches[2].Value).To(Equal(16))
 		})
 	})
 

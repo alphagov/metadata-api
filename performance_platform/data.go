@@ -2,57 +2,69 @@ package performance_platform
 
 import (
 	"encoding/json"
-	"net/url"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/alphagov/metadata-api/request"
+	"github.com/google/go-querystring/query"
 )
 
-var (
-	pageStatisticsURL = "/data/govuk-info/page-statistics"
-)
+type Query struct {
+	FilterBy []string `url:"filter_by,omitempty"`
+	GroupBy  []string `url:"group_by,omitempty"`
+	Collect  []string `url:"collect,omitempty"`
+	SortBy   []string `url:"sort_by,omitempty"`
 
-type Data struct {
-	HumanID          string  `json:"humanId"`
-	PagePath         string  `json:"pagePath"`
-	SearchKeyword    string  `json:"searchKeyword"`
-	SearchUniques    float32 `json:"searchUniques"`
-	SearchUniquesSum float32 `json:"searchUniques:sum"`
-	TimeSpan         string  `json:"timeSpan"`
-	Type             string  `json:"dataType"`
-	UniquePageViews  float32 `json:"uniquePageViews"`
+	Duration int    `url:"duration,omitempty"`
+	Period   string `url:"period,omitempty"`
 
-	// Underscore fields mean something in backdrop?
-	ID        string    `json:"_id"`
-	Count     float32   `json:"_count"`
-	Timestamp time.Time `json:"_timestamp"`
+	StartAt time.Time `url:"start_at,omitempty"`
+	EndAt   time.Time `url:"end_at,omitempty"`
 }
 
-type Backdrop struct {
-	Data    []Data `json:"data"`
-	Warning string `json:"warning"`
+type Client struct {
+	URL string
+
+	log *logrus.Logger
 }
 
-func ParseBackdropResponse(response []byte) (*Backdrop, error) {
-	backdropResponse := &Backdrop{}
-	if err := json.Unmarshal(response, &backdropResponse); err != nil {
-		return nil, err
+func NewClient(url string, logger *logrus.Logger) *Client {
+	return &Client{
+		URL: url,
+		log: logger,
+	}
+}
+
+type BackdropResponse struct {
+	Data    json.RawMessage `json:"data"`
+	Warning string          `json:"warning,omitempty"`
+	Status  string          `json:"status,omitempty"`
+	Message string          `json:"message,omitempty"`
+}
+
+func (client *Client) BuildURL(dataGroup, dataType string, dataQuery Query) string {
+	url := fmt.Sprintf("%s/data/%s/%s", client.URL, dataGroup, dataType)
+
+	values, _ := query.Values(dataQuery)
+	queryParameters := values.Encode()
+
+	if len(queryParameters) > 1 {
+		url += "?" + queryParameters
 	}
 
-	return backdropResponse, nil
+	return url
 }
 
-func FetchSlugStatistics(performanceAPI, slug string, log *logrus.Logger) (*Backdrop, error) {
-	escapedSlug := url.QueryEscape(slug)
-	statisticsURL := performanceAPI + pageStatisticsURL + "?filter_by=pagePath:" + escapedSlug
+func (client *Client) Fetch(dataGroup, dataType string, dataQuery Query) (*BackdropResponse, error) {
+	url := client.BuildURL(dataGroup, dataType, dataQuery)
 
-	log.WithFields(logrus.Fields{
-		"escapedSlug":   escapedSlug,
-		"statisticsURL": statisticsURL,
+	client.log.WithFields(logrus.Fields{
+		"url": url,
 	}).Debug("Requesting performance data for slug")
 
-	backdropResponse, err := request.NewRequest(statisticsURL, "EMPTY")
+	backdropResponse, err := request.NewRequest(url, "EMPTY")
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +80,17 @@ func FetchSlugStatistics(performanceAPI, slug string, log *logrus.Logger) (*Back
 	}
 
 	return backdrop, nil
+}
+
+func ParseBackdropResponse(response []byte) (*BackdropResponse, error) {
+	backdropResponse := &BackdropResponse{}
+	if err := json.Unmarshal(response, &backdropResponse); err != nil {
+		return nil, err
+	}
+
+	if backdropResponse.Status == "error" {
+		return nil, errors.New(backdropResponse.Message)
+	}
+
+	return backdropResponse, nil
 }

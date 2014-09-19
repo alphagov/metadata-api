@@ -66,7 +66,8 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			needs = append(needs, need)
 		}
 
-		performance, err := performance_platform.FetchSlugStatistics(performanceAPI, slug, logging)
+		ppClient := performance_platform.NewClient(performanceAPI, logging)
+		performance, err := ppClient.SlugStatistics(slug)
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
 			return

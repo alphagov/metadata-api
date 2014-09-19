@@ -13,10 +13,10 @@ type ResponseInfo struct {
 }
 
 type Metadata struct {
-	Artefact     *content_api.Artefact          `json:"artefact"`
-	Needs        []*need_api.Need               `json:"needs"`
-	Performance  *performance_platform.Backdrop `json:"performance"`
-	ResponseInfo *ResponseInfo                  `json:"_response_info"`
+	Artefact     *content_api.Artefact            `json:"artefact"`
+	Needs        []*need_api.Need                 `json:"needs"`
+	Performance  *performance_platform.Statistics `json:"performance"`
+	ResponseInfo *ResponseInfo                    `json:"_response_info"`
 }
 
 func ParseMetadataResponse(response []byte) (*Metadata, error) {

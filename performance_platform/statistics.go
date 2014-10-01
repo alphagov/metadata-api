@@ -9,9 +9,10 @@ import (
 )
 
 type Statistics struct {
-	PageViews   []Statistic `json:"page_views"`
-	Searches    []Statistic `json:"searches"`
-	SearchTerms SearchTerms `json:"search_terms"`
+	PageViews      []Statistic `json:"page_views"`
+	Searches       []Statistic `json:"searches"`
+	ProblemReports []Statistic `json:"problem_reports"`
+	SearchTerms    SearchTerms `json:"search_terms"`
 }
 
 type SearchTerms []SearchTerm
@@ -32,7 +33,7 @@ func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], te
 func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
 
 func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
-	var pageViews, searches []Statistic
+	var pageViews, searches, problemReports []Statistic
 	var searchTerms SearchTerms
 
 	if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
@@ -83,10 +84,25 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 		}
 	}
 
+	if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", Query{
+		FilterBy: []string{"pagePath:" + slug},
+		Collect:  []string{"total:sum"},
+		Duration: 42,
+		Period:   "day",
+		EndAt:    now.BeginningOfDay().UTC(),
+	}); err != nil {
+		return nil, err
+	} else {
+		if problemReports, err = parseProblemReports(problemReportsResponse); err != nil {
+			return nil, err
+		}
+	}
+
 	return &Statistics{
-		PageViews:   pageViews,
-		Searches:    searches,
-		SearchTerms: searchTerms,
+		PageViews:      pageViews,
+		Searches:       searches,
+		ProblemReports: problemReports,
+		SearchTerms:    searchTerms,
 	}, nil
 }
 
@@ -129,6 +145,28 @@ func parseSearches(response *BackdropResponse) ([]Statistic, error) {
 		statistics[i] = Statistic{
 			Timestamp: datum.Timestamp,
 			Value:     int(datum.SearchUniques),
+		}
+	}
+	return statistics, nil
+}
+
+func parseProblemReports(response *BackdropResponse) ([]Statistic, error) {
+	var data []struct {
+		Timestamp      time.Time `json:"_start_at"`
+		ProblemReports float32   `json:"total:sum"`
+	}
+
+	err := json.Unmarshal(response.Data, &data)
+
+	if err != nil {
+		return []Statistic{}, err
+	}
+
+	statistics := make([]Statistic, len(data))
+	for i, datum := range data {
+		statistics[i] = Statistic{
+			Timestamp: datum.Timestamp,
+			Value:     int(datum.ProblemReports),
 		}
 	}
 	return statistics, nil

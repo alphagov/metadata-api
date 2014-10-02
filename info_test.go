@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse, pageviewsResponse, searchesResponse, termsResponse string
+		contentAPIResponse, needAPIResponse, pageviewsResponse, searchesResponse, problemReportsResponse, termsResponse string
 
 		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
 
@@ -57,6 +57,9 @@ var _ = Describe("Info", func() {
 			} else if strings.Contains(r.URL.Path, "search-terms") {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, searchesResponse)
+			} else if strings.Contains(r.URL.Path, "page-contacts") {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintln(w, problemReportsResponse)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -106,12 +109,14 @@ var _ = Describe("Info", func() {
 			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
 			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
 			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_response.json")
 			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
 
 			contentAPIResponse = string(contentAPIResponseBytes)
 			needAPIResponse = string(needAPIResponseBytes)
 			pageviewsResponse = string(pageviewsResponseBytes)
 			searchesResponse = string(searchesResponseBytes)
+			problemReportsResponse = string(problemReportsResponseBytes)
 			termsResponse = string(termsResponseBytes)
 		})
 
@@ -138,6 +143,9 @@ var _ = Describe("Info", func() {
 			Expect(metadata.Performance.Searches).To(HaveLen(3))
 			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
 			Expect(metadata.Performance.Searches[2].Value).To(Equal(16))
+			Expect(metadata.Performance.ProblemReports).To(HaveLen(3))
+			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
+			Expect(metadata.Performance.ProblemReports[2].Value).To(Equal(16))
 			Expect(metadata.Performance.SearchTerms).To(HaveLen(6))
 			Expect(metadata.Performance.SearchTerms[1].Keyword).To(Equal("s2s"))
 			Expect(metadata.Performance.SearchTerms[1].Searches).To(HaveLen(1))

@@ -3,10 +3,12 @@ package main
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
 	"github.com/meatballhat/negroni-logrus"
+	"github.com/quipo/statsd"
 	"gopkg.in/unrolled/render.v1"
 
 	"github.com/alphagov/metadata-api/content_api"
@@ -29,6 +31,8 @@ var (
 	loggingMiddleware = negronilogrus.NewCustomMiddleware(
 		logrus.InfoLevel, &logrus.JSONFormatter{}, "metadata-api")
 	logging = loggingMiddleware.Logger
+
+	statsdClient = newStatsDClient("localhost:8125", "metadata-api.")
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +50,9 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			return
 		}
 
+		artefactStart := time.Now()
 		artefact, err := content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
+		statsDTiming("artefact", artefactStart, time.Now())
 		if err != nil {
 			if err == request.NotFoundError {
 				renderError(w, http.StatusNotFound, err.Error())
@@ -57,6 +63,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			return
 		}
 
+		needStart := time.Now()
 		for _, needID := range artefact.Details.NeedIDs {
 			need, err := need_api.FetchNeed(needAPI, config.BearerTokenNeedAPI, needID)
 			if err != nil {
@@ -65,9 +72,12 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			}
 			needs = append(needs, need)
 		}
+		statsDTiming("needs", needStart, time.Now())
 
+		performanceStart := time.Now()
 		ppClient := performance_platform.NewClient(performanceAPI, logging)
 		performance, err := ppClient.SlugStatistics(slug)
+		statsDTiming("performance", performanceStart, time.Now())
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
 			return
@@ -121,4 +131,16 @@ func getHttpProtocol(appDomain string) string {
 	}
 
 	return "https"
+}
+
+func newStatsDClient(host, prefix string) *statsd.StatsdClient {
+	statsdClient := statsd.NewStatsdClient(host, prefix)
+	statsdClient.CreateSocket()
+
+	return statsdClient
+}
+
+func statsDTiming(label string, start, end time.Time) {
+	statsdClient.Timing("time."+label,
+		int64(end.Sub(start)/time.Millisecond))
 }

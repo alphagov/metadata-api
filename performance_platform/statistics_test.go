@@ -29,7 +29,7 @@ var _ = Describe("Statistics", func() {
 
 	Describe("SlugStatistics", func() {
 		It("Should return formatted data", func() {
-			server.AppendHandlers(
+			server.RouteToHandler("GET", "/data/govuk-info/page-statistics",
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/data/govuk-info/page-statistics"),
 					ghttp.RespondWith(http.StatusOK, `
@@ -42,11 +42,14 @@ var _ = Describe("Statistics", func() {
     "uniquePageviews:sum": 25931
   }
 ]
-}`),
-				),
+}`)))
+
+			server.RouteToHandler("GET", "/data/govuk-info/search-terms",
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/data/govuk-info/search-terms"),
-					ghttp.RespondWith(http.StatusOK, `
+					http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if r.URL.Query().Get("group_by") != "searchKeyword" {
+							ghttp.RespondWith(http.StatusOK, `
 {
 "data": [
   {
@@ -56,11 +59,9 @@ var _ = Describe("Statistics", func() {
     "searchUniques:sum": 71
   }
 ]
-}`),
-				),
-				ghttp.CombineHandlers(
-					ghttp.VerifyRequest("GET", "/data/govuk-info/search-terms"),
-					ghttp.RespondWith(http.StatusOK, `
+}`)(w, r)
+						} else {
+							ghttp.RespondWith(http.StatusOK, `
 {
 "data": [
   {
@@ -100,8 +101,11 @@ var _ = Describe("Statistics", func() {
     }]
   }
 ]
-}`),
-				),
+}`)(w, r)
+						}
+					})))
+
+			server.RouteToHandler("GET", "/data/govuk-info/page-contacts",
 				ghttp.CombineHandlers(
 					ghttp.VerifyRequest("GET", "/data/govuk-info/page-contacts"),
 					ghttp.RespondWith(http.StatusOK, `
@@ -114,9 +118,7 @@ var _ = Describe("Statistics", func() {
 		"total:sum": 71
 	}
 ]
-}`),
-				),
-			)
+}`)))
 
 			statistics, err := client.SlugStatistics("/foo")
 			Expect(err).To(BeNil())

@@ -3,6 +3,7 @@ package performance_platform
 import (
 	"encoding/json"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -35,67 +36,96 @@ func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > t
 func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	var pageViews, searches, problemReports []Statistic
 	var searchTerms SearchTerms
+	var waitGroup sync.WaitGroup
 
-	if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
-		FilterBy: []string{"pagePath:" + slug},
-		Collect:  []string{"uniquePageviews:sum"},
-		Duration: 42,
-		Period:   "day",
-		EndAt:    now.BeginningOfDay().UTC(),
-	}); err != nil {
-		return nil, err
-	} else {
-		if pageViews, err = parsePageViews(pageViewsResponse); err != nil {
-			return nil, err
-		}
-	}
+	errorChannel := make(chan error)
 
-	if searchesResponse, err := client.Fetch("govuk-info", "search-terms", Query{
-		FilterBy: []string{"pagePath:" + slug},
-		Collect:  []string{"searchUniques:sum"},
-		Duration: 42,
-		Period:   "day",
-		EndAt:    now.BeginningOfDay().UTC(),
-	}); err != nil {
-		return nil, err
-	} else {
-		if searches, err = parseSearches(searchesResponse); err != nil {
-			return nil, err
-		}
-	}
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
 
-	if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", Query{
-		FilterBy: []string{"pagePath:" + slug},
-		GroupBy:  []string{"searchKeyword"},
-		Collect:  []string{"searchUniques:sum"},
-		Duration: 42,
-		Period:   "day",
-		EndAt:    now.BeginningOfDay().UTC(),
-	}); err != nil {
-		return nil, err
-	} else {
-		if searchTerms, err = parseSearchTerms(searchTermsResponse); err != nil {
-			return nil, err
+		if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
+			FilterBy: []string{"pagePath:" + slug},
+			Collect:  []string{"uniquePageviews:sum"},
+			Duration: 42,
+			Period:   "day",
+			EndAt:    now.BeginningOfDay().UTC(),
+		}); err != nil {
+			errorChannel <- err
 		} else {
-			sort.Sort(searchTerms)
-			if len(searchTerms) > 10 {
-				searchTerms = searchTerms[0:10]
+			if pageViews, err = parsePageViews(pageViewsResponse); err != nil {
+				errorChannel <- err
 			}
 		}
-	}
+	}()
 
-	if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", Query{
-		FilterBy: []string{"pagePath:" + slug},
-		Collect:  []string{"total:sum"},
-		Duration: 42,
-		Period:   "day",
-		EndAt:    now.BeginningOfDay().UTC(),
-	}); err != nil {
-		return nil, err
-	} else {
-		if problemReports, err = parseProblemReports(problemReportsResponse); err != nil {
-			return nil, err
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+
+		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+			FilterBy: []string{"pagePath:" + slug},
+			Collect:  []string{"searchUniques:sum"},
+			Duration: 42,
+			Period:   "day",
+			EndAt:    now.BeginningOfDay().UTC(),
+		}); err != nil {
+			errorChannel <- err
+		} else {
+			if searches, err = parseSearches(searchesResponse); err != nil {
+				errorChannel <- err
+			}
 		}
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+
+		if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+			FilterBy: []string{"pagePath:" + slug},
+			GroupBy:  []string{"searchKeyword"},
+			Collect:  []string{"searchUniques:sum"},
+			Duration: 42,
+			Period:   "day",
+			EndAt:    now.BeginningOfDay().UTC(),
+		}); err != nil {
+			errorChannel <- err
+		} else {
+			if searchTerms, err = parseSearchTerms(searchTermsResponse); err != nil {
+				errorChannel <- err
+			} else {
+				sort.Sort(searchTerms)
+				if len(searchTerms) > 10 {
+					searchTerms = searchTerms[0:10]
+				}
+			}
+		}
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+
+		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", Query{
+			FilterBy: []string{"pagePath:" + slug},
+			Collect:  []string{"total:sum"},
+			Duration: 42,
+			Period:   "day",
+			EndAt:    now.BeginningOfDay().UTC(),
+		}); err != nil {
+			errorChannel <- err
+		} else {
+			if problemReports, err = parseProblemReports(problemReportsResponse); err != nil {
+				errorChannel <- err
+			}
+		}
+	}()
+
+	waitGroup.Wait()
+
+	if len(errorChannel) > 0 {
+		return nil, <-errorChannel
 	}
 
 	return &Statistics{

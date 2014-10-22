@@ -41,7 +41,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var needs []*need_api.Need
+		var needs []*need_api.Need = make([]*need_api.Need, 0)
 
 		slug := r.URL.Path[len("/info"):]
 

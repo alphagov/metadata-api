@@ -1,0 +1,15 @@
+{
+  "id": "https://www.gov.uk/api/driving-licence-fees.json",
+  "web_url": "https://www.gov.uk/driving-licence-fees",
+  "title": "Driving licence fees",
+  "format": "answer",
+  "updated_at": "2014-06-27T14:21:48+01:00",
+  "details": {
+    "need_ids": [],
+    "language": "en",
+    "body": "foo"
+  },
+  "_response_info": {
+    "status": "ok"
+  }
+}

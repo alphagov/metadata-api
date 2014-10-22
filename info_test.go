@@ -152,6 +152,38 @@ var _ = Describe("Info", func() {
 		})
 	})
 
+	Describe("fetching a slug without need_ids", func() {
+		BeforeEach(func() {
+			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response_without_need_ids.json")
+			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_response.json")
+			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
+
+			contentAPIResponse = string(contentAPIResponseBytes)
+			pageviewsResponse = string(pageviewsResponseBytes)
+			searchesResponse = string(searchesResponseBytes)
+			problemReportsResponse = string(problemReportsResponseBytes)
+			termsResponse = string(termsResponseBytes)
+		})
+
+		It("returns a metadata response with the an empty Needs array", func() {
+			response, err := getSlug(testServer.URL, "dummy-slug")
+			Expect(err).To(BeNil())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+
+			body, err := readResponseBody(response)
+			Expect(err).To(BeNil())
+
+			metadata, err := ParseMetadataResponse([]byte(body))
+			Expect(err).To(BeNil())
+
+			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
+
+			Expect(metadata.Needs).To(HaveLen(0))
+		})
+	})
+
 	Describe("querying for a slug that doesn't exist", func() {
 		BeforeEach(func() {
 			testContentAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {

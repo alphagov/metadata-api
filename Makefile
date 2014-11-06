@@ -1,33 +1,31 @@
-.PHONY: deps test build rm_compiled_self
+.PHONY: deps test build
 
 BINARY := metadata-api
 ORG_PATH := github.com/alphagov
 REPO_PATH := $(ORG_PATH)/$(BINARY)
 
-all: deps test build
+all: test build
 
-deps: third_party/src/$(REPO_PATH) rm_compiled_self
-	go run third_party.go get -t -v .
+deps:
+	gom install
 
-rm_compiled_self:
-	rm -rf third_party/pkg/*/$(REPO_PATH)
+vendor: deps
+	rm -rf _vendor/src/$(ORG_PATH)
+	mkdir -p _vendor/src/$(ORG_PATH)
+	ln -s $(CURDIR) _vendor/src/$(REPO_PATH)
 
-third_party/src/$(REPO_PATH):
-	mkdir -p third_party/src/$(ORG_PATH)
-	ln -s ../../../.. third_party/src/$(REPO_PATH)
-
-test: deps
-	go run third_party.go test -v $(REPO_PATH) \
+test: vendor
+	gom test -v $(REPO_PATH) \
 		$(REPO_PATH)/content_api \
 		$(REPO_PATH)/need_api \
 		$(REPO_PATH)/performance_platform \
 		$(REPO_PATH)/request
 
-build: deps
-	go run third_party.go build -o $(BINARY)
+build: vendor
+	gom build -o $(BINARY)
 
 run: build
 	./metadata-api
 
 clean:
-	rm -rf bin metadata-api third_party
+	rm -rf bin metadata-api _vendor

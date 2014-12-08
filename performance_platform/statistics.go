@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alphagov/performanceplatform-client.go"
 	"github.com/jinzhu/now"
 )
 
@@ -33,7 +34,7 @@ func (terms SearchTerms) Len() int           { return len(terms) }
 func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], terms[i] }
 func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
 
-func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
+func SlugStatistics(client performanceclient.DataClient, slug string) (*Statistics, error) {
 	var pageViews, searches, problemReports []Statistic
 	var searchTerms SearchTerms
 	var waitGroup sync.WaitGroup
@@ -44,13 +45,14 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	go func() {
 		defer waitGroup.Done()
 
-		if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", Query{
-			FilterBy: []string{"pagePath:" + slug},
-			Collect:  []string{"uniquePageviews:sum"},
-			Duration: 42,
-			Period:   "day",
-			EndAt:    now.BeginningOfDay().UTC(),
-		}); err != nil {
+		if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics",
+			performanceclient.QueryParams{
+				FilterBy: []string{"pagePath:" + slug},
+				Collect:  []string{"uniquePageviews:sum"},
+				Duration: 42,
+				Period:   "day",
+				EndAt:    now.BeginningOfDay().UTC(),
+			}); err != nil {
 			errorChannel <- err
 		} else {
 			if pageViews, err = parsePageViews(pageViewsResponse); err != nil {
@@ -63,7 +65,7 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	go func() {
 		defer waitGroup.Done()
 
-		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
 			Collect:  []string{"searchUniques:sum"},
 			Duration: 42,
@@ -82,9 +84,9 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	go func() {
 		defer waitGroup.Done()
 
-		if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", Query{
+		if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
-			GroupBy:  []string{"searchKeyword"},
+			GroupBy:  "searchKeyword",
 			Collect:  []string{"searchUniques:sum"},
 			Duration: 42,
 			Period:   "day",
@@ -107,7 +109,7 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	go func() {
 		defer waitGroup.Done()
 
-		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", Query{
+		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
 			Collect:  []string{"total:sum"},
 			Duration: 42,
@@ -136,7 +138,7 @@ func (client *Client) SlugStatistics(slug string) (*Statistics, error) {
 	}, nil
 }
 
-func parsePageViews(response *BackdropResponse) ([]Statistic, error) {
+func parsePageViews(response *performanceclient.BackdropResponse) ([]Statistic, error) {
 	var data []struct {
 		Timestamp time.Time `json:"_start_at"`
 		PageViews float32   `json:"uniquePageviews:sum"`
@@ -158,7 +160,7 @@ func parsePageViews(response *BackdropResponse) ([]Statistic, error) {
 	return statistics, nil
 }
 
-func parseSearches(response *BackdropResponse) ([]Statistic, error) {
+func parseSearches(response *performanceclient.BackdropResponse) ([]Statistic, error) {
 	var data []struct {
 		Timestamp     time.Time `json:"_start_at"`
 		SearchUniques float32   `json:"searchUniques:sum"`
@@ -180,7 +182,7 @@ func parseSearches(response *BackdropResponse) ([]Statistic, error) {
 	return statistics, nil
 }
 
-func parseProblemReports(response *BackdropResponse) ([]Statistic, error) {
+func parseProblemReports(response *performanceclient.BackdropResponse) ([]Statistic, error) {
 	var data []struct {
 		Timestamp      time.Time `json:"_start_at"`
 		ProblemReports float32   `json:"total:sum"`
@@ -202,7 +204,7 @@ func parseProblemReports(response *BackdropResponse) ([]Statistic, error) {
 	return statistics, nil
 }
 
-func parseSearchTerms(response *BackdropResponse) (SearchTerms, error) {
+func parseSearchTerms(response *performanceclient.BackdropResponse) (SearchTerms, error) {
 	var data []struct {
 		Keyword       string  `json:"searchKeyword"`
 		TotalSearches float32 `json:"searchUniques:sum"`

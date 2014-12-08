@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/alphagov/performanceplatform-client.go"
 	"github.com/codegangsta/negroni"
 	"github.com/meatballhat/negroni-logrus"
 	"github.com/quipo/statsd"
@@ -75,8 +76,8 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 		statsDTiming("needs", needStart, time.Now())
 
 		performanceStart := time.Now()
-		ppClient := performance_platform.NewClient(performanceAPI, logging)
-		performance, err := ppClient.SlugStatistics(slug)
+		ppClient := performanceclient.NewDataClient(performanceAPI, logging)
+		performance, err := performance_platform.SlugStatistics(ppClient, slug)
 		statsDTiming("performance", performanceStart, time.Now())
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())

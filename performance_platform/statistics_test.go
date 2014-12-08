@@ -10,17 +10,18 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/alphagov/performanceplatform-client.go"
 	"github.com/onsi/gomega/ghttp"
 )
 
 var _ = Describe("Statistics", func() {
 
 	var server *ghttp.Server
-	var client *Client
+	var client performanceclient.DataClient
 
 	BeforeEach(func() {
 		server = ghttp.NewServer()
-		client = NewClient(server.URL(), logrus.New())
+		client = performanceclient.NewDataClient(server.URL(), logrus.New())
 	})
 
 	AfterEach(func() {
@@ -120,7 +121,7 @@ var _ = Describe("Statistics", func() {
 ]
 }`)))
 
-			statistics, err := client.SlugStatistics("/foo")
+			statistics, err := SlugStatistics(client, "/foo")
 			Expect(err).To(BeNil())
 			Expect(statistics).ToNot(BeNil())
 			Expect(len(statistics.PageViews)).To(Equal(1))

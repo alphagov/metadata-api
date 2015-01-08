@@ -26,8 +26,14 @@ type SearchTerm struct {
 }
 
 type Statistic struct {
+	Path      string    `json:"path"`
 	Timestamp time.Time `json:"timestamp"`
 	Value     int       `json:"value"`
+}
+
+type PageViewsForDate struct {
+	Timestamp time.Time `json:"_start_at"`
+	PageViews float32   `json:"uniquePageviews:sum"`
 }
 
 func (terms SearchTerms) Len() int           { return len(terms) }
@@ -49,6 +55,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 			performanceclient.QueryParams{
 				FilterBy: []string{"pagePath:" + slug},
 				Collect:  []string{"uniquePageviews:sum"},
+				GroupBy:  "pagePath",
 				Duration: 42,
 				Period:   "day",
 				EndAt:    now.BeginningOfDay().UTC(),
@@ -139,22 +146,26 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 }
 
 func parsePageViews(response *performanceclient.BackdropResponse) ([]Statistic, error) {
-	var data []struct {
-		Timestamp time.Time `json:"_start_at"`
-		PageViews float32   `json:"uniquePageviews:sum"`
+	var datasetsPerPath []struct {
+		Path   string             `json:"pagePath"`
+		Values []PageViewsForDate `json:"values"`
 	}
 
-	err := json.Unmarshal(response.Data, &data)
+	err := json.Unmarshal(response.Data, &datasetsPerPath)
 
 	if err != nil {
 		return []Statistic{}, err
 	}
 
-	statistics := make([]Statistic, len(data))
-	for i, datum := range data {
-		statistics[i] = Statistic{
-			Timestamp: datum.Timestamp,
-			Value:     int(datum.PageViews),
+	statistics := make([]Statistic, 0)
+	for _, datasetPerPath := range datasetsPerPath {
+		for _, datum := range datasetPerPath.Values {
+			statistic := Statistic{
+				Path:      datasetPerPath.Path,
+				Timestamp: datum.Timestamp,
+				Value:     int(datum.PageViews),
+			}
+			statistics = append(statistics, statistic)
 		}
 	}
 	return statistics, nil

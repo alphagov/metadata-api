@@ -118,10 +118,15 @@ var _ = Describe("Statistics", func() {
 {
 "data": [
 	{
-		"_count": 4,
-		"_end_at": "2014-09-03T00:00:00+00:00",
-		"_start_at": "2014-09-02T00:00:00+00:00",
-		"total:sum": 71
+		"pagePath": "/tax-disc",
+		"values": [
+			{
+				"_count": 4,
+				"_end_at": "2014-09-03T00:00:00+00:00",
+				"_start_at": "2014-09-02T00:00:00+00:00",
+				"total:sum": 71
+			}
+		]
 	}
 ]
 }`)))
@@ -137,6 +142,7 @@ var _ = Describe("Statistics", func() {
 			Expect(statistics.PageViews[0].Path).To(Equal("/tax-disc"))
 			Expect(statistics.Searches[0].Value).To(Equal(71))
 			Expect(statistics.ProblemReports[0].Value).To(Equal(71))
+			Expect(statistics.ProblemReports[0].Path).To(Equal("/tax-disc"))
 
 			pageViewTimestamp, err := time.Parse(time.RFC3339, "2014-07-03T00:00:00+00:00")
 			Expect(err).To(BeNil())

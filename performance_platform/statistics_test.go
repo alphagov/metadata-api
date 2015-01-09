@@ -58,12 +58,17 @@ var _ = Describe("Statistics", func() {
 							ghttp.RespondWith(http.StatusOK, `
 {
 "data": [
-  {
-    "_count": 4,
-    "_end_at": "2014-09-03T00:00:00+00:00",
-    "_start_at": "2014-09-02T00:00:00+00:00",
-    "searchUniques:sum": 71
-  }
+	{
+		"pagePath": "/tax-disc",
+		"values": [
+			{
+				"_count": 4,
+				"_end_at": "2014-09-03T00:00:00+00:00",
+				"_start_at": "2014-09-02T00:00:00+00:00",
+				"searchUniques:sum": 71
+			}
+		]
+	}
 ]
 }`)(w, r)
 						} else {
@@ -141,6 +146,7 @@ var _ = Describe("Statistics", func() {
 			Expect(statistics.PageViews[0].Value).To(Equal(25931))
 			Expect(statistics.PageViews[0].Path).To(Equal("/tax-disc"))
 			Expect(statistics.Searches[0].Value).To(Equal(71))
+			Expect(statistics.Searches[0].Path).To(Equal("/tax-disc"))
 			Expect(statistics.ProblemReports[0].Value).To(Equal(71))
 			Expect(statistics.ProblemReports[0].Path).To(Equal("/tax-disc"))
 

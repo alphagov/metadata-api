@@ -41,6 +41,11 @@ type ProblemReportsForDate struct {
 	ProblemReports float32   `json:"total:sum"`
 }
 
+type SearchUniquesForDate struct {
+	Timestamp     time.Time `json:"_start_at"`
+	SearchUniques float32   `json:"searchUniques:sum"`
+}
+
 func (terms SearchTerms) Len() int           { return len(terms) }
 func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], terms[i] }
 func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
@@ -80,6 +85,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
 			Collect:  []string{"searchUniques:sum"},
+			GroupBy:  "pagePath",
 			Duration: 42,
 			Period:   "day",
 			EndAt:    now.BeginningOfDay().UTC(),
@@ -178,22 +184,26 @@ func parsePageViews(response *performanceclient.BackdropResponse) ([]Statistic, 
 }
 
 func parseSearches(response *performanceclient.BackdropResponse) ([]Statistic, error) {
-	var data []struct {
-		Timestamp     time.Time `json:"_start_at"`
-		SearchUniques float32   `json:"searchUniques:sum"`
+	var datasetsPerPath []struct {
+		Path   string                 `json:"pagePath"`
+		Values []SearchUniquesForDate `json:"values"`
 	}
 
-	err := json.Unmarshal(response.Data, &data)
+	err := json.Unmarshal(response.Data, &datasetsPerPath)
 
 	if err != nil {
 		return []Statistic{}, err
 	}
 
-	statistics := make([]Statistic, len(data))
-	for i, datum := range data {
-		statistics[i] = Statistic{
-			Timestamp: datum.Timestamp,
-			Value:     int(datum.SearchUniques),
+	statistics := make([]Statistic, 0)
+	for _, datasetPerPath := range datasetsPerPath {
+		for _, datum := range datasetPerPath.Values {
+			statistic := Statistic{
+				Path:      datasetPerPath.Path,
+				Timestamp: datum.Timestamp,
+				Value:     int(datum.SearchUniques),
+			}
+			statistics = append(statistics, statistic)
 		}
 	}
 	return statistics, nil

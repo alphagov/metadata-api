@@ -1,16 +1,21 @@
 {
     "data": [
         {
-            "_count": 1,
-            "_end_at": "2014-07-04T00:00:00+00:00",
-            "_start_at": "2014-07-03T00:00:00+00:00",
-            "uniquePageviews:sum": 25931
-        },
-        {
-            "_count": 1,
-            "_end_at": "2014-07-05T00:00:00+00:00",
-            "_start_at": "2014-07-04T00:00:00+00:00",
-            "uniquePageviews:sum": 22339
+            "pagePath": "/dummy-slug",
+            "values": [
+              {
+                "_count": 1,
+                "_end_at": "2014-07-04T00:00:00+00:00",
+                "_start_at": "2014-07-03T00:00:00+00:00",
+                "uniquePageviews:sum": 25931
+              },
+              {
+                "_count": 1,
+                "_end_at": "2014-07-05T00:00:00+00:00",
+                "_start_at": "2014-07-04T00:00:00+00:00",
+                "uniquePageviews:sum": 22339
+              }
+            ]
         }
     ],
     "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."

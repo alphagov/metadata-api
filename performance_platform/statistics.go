@@ -65,7 +65,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 			performanceclient.QueryParams{
 				FilterBy: []string{"pagePath:" + slug},
 				Collect:  []string{"uniquePageviews:sum"},
-				GroupBy:  "pagePath",
+				GroupBy:  []string{"pagePath"},
 				Duration: 42,
 				Period:   "day",
 				EndAt:    now.BeginningOfDay().UTC(),
@@ -85,7 +85,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
 			Collect:  []string{"searchUniques:sum"},
-			GroupBy:  "pagePath",
+			GroupBy:  []string{"pagePath"},
 			Duration: 42,
 			Period:   "day",
 			EndAt:    now.BeginningOfDay().UTC(),
@@ -104,7 +104,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 
 		if searchTermsResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
-			GroupBy:  "searchKeyword",
+			GroupBy:  []string{"searchKeyword"},
 			Collect:  []string{"searchUniques:sum"},
 			Duration: 42,
 			Period:   "day",
@@ -130,7 +130,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", performanceclient.QueryParams{
 			FilterBy: []string{"pagePath:" + slug},
 			Collect:  []string{"total:sum"},
-			GroupBy:  "pagePath",
+			GroupBy:  []string{"pagePath"},
 			Duration: 42,
 			Period:   "day",
 			EndAt:    now.BeginningOfDay().UTC(),

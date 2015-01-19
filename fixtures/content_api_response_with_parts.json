@@ -1,0 +1,29 @@
+{
+  "id": "https://www.gov.uk/api/driving-licence-fees.json",
+  "web_url": "https://www.gov.uk/driving-licence-fees",
+  "title": "Driving licence fees",
+  "format": "answer",
+  "updated_at": "2014-06-27T14:21:48+01:00",
+  "details": {
+    "need_ids": ["100567"],
+    "language": "en",
+    "body": "foo",
+    "parts": [
+      {
+        "web_url": "https://www.gov.uk/housing-benefit/overview",
+        "slug": "overview",
+        "order": 1,
+        "title": "Overview"
+      },
+      {
+        "web_url": "https://www.gov.uk/housing-benefit/what-youll-get",
+        "slug": "what-youll-get",
+        "order": 2,
+        "title": "What you'll get"
+      }
+    ]
+  },
+  "_response_info": {
+    "status": "ok"
+  }
+}

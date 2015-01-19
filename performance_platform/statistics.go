@@ -50,7 +50,7 @@ func (terms SearchTerms) Len() int           { return len(terms) }
 func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], terms[i] }
 func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
 
-func SlugStatistics(client performanceclient.DataClient, slug string) (*Statistics, error) {
+func SlugStatistics(client performanceclient.DataClient, slug string, is_multipart bool) (*Statistics, error) {
 	var pageViews, searches, problemReports []Statistic
 	var searchTerms SearchTerms
 	var waitGroup sync.WaitGroup
@@ -61,15 +61,20 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 	go func() {
 		defer waitGroup.Done()
 
-		if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics",
-			performanceclient.QueryParams{
-				FilterBy: []string{"pagePath:" + slug},
-				Collect:  []string{"uniquePageviews:sum"},
-				GroupBy:  []string{"pagePath"},
-				Duration: 42,
-				Period:   "day",
-				EndAt:    now.BeginningOfDay().UTC(),
-			}); err != nil {
+		query_params := performanceclient.QueryParams{
+			Collect:  []string{"uniquePageviews:sum"},
+			GroupBy:  []string{"pagePath"},
+			Duration: 42,
+			Period:   "day",
+			EndAt:    now.BeginningOfDay().UTC(),
+		}
+		if !is_multipart {
+			query_params.FilterBy = []string{"pagePath:" + slug}
+		} else {
+			query_params.FilterByPrefix = []string{"pagePath:" + slug}
+		}
+
+		if pageViewsResponse, err := client.Fetch("govuk-info", "page-statistics", query_params); err != nil {
 			errorChannel <- err
 		} else {
 			if pageViews, err = parsePageViews(pageViewsResponse); err != nil {
@@ -82,14 +87,20 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 	go func() {
 		defer waitGroup.Done()
 
-		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", performanceclient.QueryParams{
-			FilterBy: []string{"pagePath:" + slug},
+		query_params := performanceclient.QueryParams{
 			Collect:  []string{"searchUniques:sum"},
 			GroupBy:  []string{"pagePath"},
 			Duration: 42,
 			Period:   "day",
 			EndAt:    now.BeginningOfDay().UTC(),
-		}); err != nil {
+		}
+		if !is_multipart {
+			query_params.FilterBy = []string{"pagePath:" + slug}
+		} else {
+			query_params.FilterByPrefix = []string{"pagePath:" + slug}
+		}
+
+		if searchesResponse, err := client.Fetch("govuk-info", "search-terms", query_params); err != nil {
 			errorChannel <- err
 		} else {
 			if searches, err = parseSearches(searchesResponse); err != nil {
@@ -127,14 +138,20 @@ func SlugStatistics(client performanceclient.DataClient, slug string) (*Statisti
 	go func() {
 		defer waitGroup.Done()
 
-		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", performanceclient.QueryParams{
-			FilterBy: []string{"pagePath:" + slug},
+		query_params := performanceclient.QueryParams{
 			Collect:  []string{"total:sum"},
 			GroupBy:  []string{"pagePath"},
 			Duration: 42,
 			Period:   "day",
 			EndAt:    now.BeginningOfDay().UTC(),
-		}); err != nil {
+		}
+		if !is_multipart {
+			query_params.FilterBy = []string{"pagePath:" + slug}
+		} else {
+			query_params.FilterByPrefix = []string{"pagePath:" + slug}
+		}
+
+		if problemReportsResponse, err := client.Fetch("govuk-info", "page-contacts", query_params); err != nil {
 			errorChannel <- err
 		} else {
 			if problemReports, err = parseProblemReports(problemReportsResponse); err != nil {

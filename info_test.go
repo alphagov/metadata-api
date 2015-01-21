@@ -182,6 +182,47 @@ var _ = Describe("Info", func() {
 
 			Expect(metadata.Needs).To(HaveLen(0))
 		})
+
+	})
+
+	Describe("fetching a valid slug with a multipart format", func() {
+		BeforeEach(func() {
+			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response_with_parts.json")
+			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_multipart_response.json")
+			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_multipart_response.json")
+			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_multipart_response.json")
+
+			contentAPIResponse = string(contentAPIResponseBytes)
+			pageviewsResponse = string(pageviewsResponseBytes)
+			searchesResponse = string(searchesResponseBytes)
+			problemReportsResponse = string(problemReportsResponseBytes)
+		})
+
+		It("returns a metadata response with a parts array, and handles multipart data correctly", func() {
+			response, err := getSlug(testServer.URL, "dummy-slug")
+			Expect(err).To(BeNil())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+
+			body, err := readResponseBody(response)
+			Expect(err).To(BeNil())
+
+			metadata, err := ParseMetadataResponse([]byte(body))
+			Expect(err).To(BeNil())
+
+			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
+
+			Expect(metadata.Artefact.Details.Parts[1].WebURL).To(Equal(string("https://www.gov.uk/housing-benefit/what-youll-get")))
+
+			Expect(metadata.Performance.PageViews).To(HaveLen(4))
+			Expect(metadata.Performance.PageViews[3].Value).To(Equal(27697))
+			Expect(metadata.Performance.Searches).To(HaveLen(6))
+			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
+			Expect(metadata.Performance.Searches[4].Value).To(Equal(0))
+			Expect(metadata.Performance.ProblemReports).To(HaveLen(6))
+			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
+			Expect(metadata.Performance.ProblemReports[5].Value).To(Equal(16))
+		})
+
 	})
 
 	Describe("querying for a slug that doesn't exist", func() {

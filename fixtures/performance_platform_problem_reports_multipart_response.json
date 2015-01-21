@@ -1,0 +1,51 @@
+{
+  "data": [
+    {
+      "pagePath": "/dummy-slug",
+      "values": [
+        {
+          "_count": 0,
+          "_end_at": "2014-07-26T00:00:00+00:00",
+          "_start_at": "2014-07-25T00:00:00+00:00",
+          "total:sum": null
+        },
+        {
+          "_count": 0,
+          "_end_at": "2014-07-27T00:00:00+00:00",
+          "_start_at": "2014-07-26T00:00:00+00:00",
+          "total:sum": null
+        },
+        {
+          "_count": 1,
+          "_end_at": "2014-07-28T00:00:00+00:00",
+          "_start_at": "2014-07-27T00:00:00+00:00",
+          "total:sum": 16
+        }
+      ]
+    },
+    {
+      "pagePath": "/dummy-slug/second-page",
+      "values": [
+        {
+          "_count": 0,
+          "_end_at": "2014-07-26T00:00:00+00:00",
+          "_start_at": "2014-07-25T00:00:00+00:00",
+          "total:sum": 1
+        },
+        {
+          "_count": 0,
+          "_end_at": "2014-07-27T00:00:00+00:00",
+          "_start_at": "2014-07-26T00:00:00+00:00",
+          "total:sum": 0
+        },
+        {
+          "_count": 1,
+          "_end_at": "2014-07-28T00:00:00+00:00",
+          "_start_at": "2014-07-27T00:00:00+00:00",
+          "total:sum": 16
+        }
+      ]
+    }
+  ],
+  "warning": "Warning: This data-set is unpublished. Data may be subject to change or be inaccurate."
+}

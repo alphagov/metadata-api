@@ -1,4 +1,4 @@
-gom 'github.com/alphagov/performanceplatform-client.go', :commit => '4f87c98640f2b28411c0d1d51baf295be42675f8'
+gom 'github.com/alphagov/performanceplatform-client.go', :commit => '6b388883f3e3cf2a864aeb335ce36e10f0e7a60d'
 gom 'github.com/Sirupsen/logrus', :commit => '965349de21e7b1e9e80b6ae02e093f1522516ef3'
 gom 'github.com/codegangsta/negroni', :commit => 'c64702ca03d0f858ab7866638b69e85f0d4c6ee7'
 gom 'github.com/google/go-querystring/query', :commit => '30f7a39f4a218feb5325f3aebc60c32a572a8274'

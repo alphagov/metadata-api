@@ -77,7 +77,8 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 
 		performanceStart := time.Now()
 		ppClient := performanceclient.NewDataClient(performanceAPI, logging)
-		performance, err := performance_platform.SlugStatistics(ppClient, slug)
+		is_multipart := (len(artefact.Details.Parts) != 0)
+		performance, err := performance_platform.SlugStatistics(ppClient, slug, is_multipart)
 		statsDTiming("performance", performanceStart, time.Now())
 		if err != nil {
 			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())

@@ -8,6 +8,7 @@ import (
 
 type Part struct {
 	WebURL  string `json:"web_url"`
+	Title   string `json:"title"`
 }
 
 type Detail struct {

@@ -32,7 +32,23 @@ var _ = Describe("Artefact", func() {
     "language": "en",
     "need_extended_font": false,
     "alternative_title": "",
-    "body": "foo"
+    "body": "foo",
+    "parts": [
+      {
+		"web_url": "https://www.gov.uk/housing-benefit/overview",
+		"slug": "overview",
+		"order": 1,
+		"title": "Overview",
+		"body": "<p>You could get Housing Benefit to help you pay your rent.</p>"
+      },
+      {
+		"web_url": "https://www.gov.uk/housing-benefit/what-youll-get",
+		"slug": "what-youll-get",
+		"order": 2,
+		"title": "What you'll get",
+		"body": "<p>You may get help with all or part of your rent.</p> "
+      }
+    ]
   },
   "_response_info": {
     "status": "ok"
@@ -51,6 +67,16 @@ var _ = Describe("Artefact", func() {
 					NeedIDs:             []string{"100567"},
 					BusinessProposition: true,
 					Description:         "this is a test artefact",
+	                Parts: []Part{
+	                    Part{
+	                        WebURL: "https://www.gov.uk/housing-benefit/overview",
+	                        Title: "Overview",
+	                    },
+	                    Part{
+	                        WebURL: "https://www.gov.uk/housing-benefit/what-youll-get",
+	                        Title: "What you'll get",
+	                    },
+	                },
 				},
 			}))
 		})

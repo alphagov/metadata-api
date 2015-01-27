@@ -77,7 +77,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 
 		performanceStart := time.Now()
 		ppClient := performanceclient.NewDataClient(performanceAPI, logging)
-		is_multipart := (len(artefact.Details.Parts) != 0)
+		is_multipart := (len(artefact.Details.Parts) != 0) || (artefact.Format == "smart-answer")
 		performance, err := performance_platform.SlugStatistics(ppClient, slug, is_multipart)
 		statsDTiming("performance", performanceStart, time.Now())
 		if err != nil {

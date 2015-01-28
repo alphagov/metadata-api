@@ -136,6 +136,30 @@ var _ = Describe("Statistics", func() {
 ]
 }`)))
 
+			server.RouteToHandler("GET", "/data/govuk-info/info-statistics",
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("GET", "/data/govuk-info/info-statistics"),
+					ghttp.RespondWith(http.StatusOK, `
+{
+"data": [
+    "_end_at": "2015-01-27T00:00:00Z",
+    "_start_at": "2014-12-16T00:00:00Z",
+    "_timestamp": "2014-12-16T00:00:00Z",
+    "format": "smart-answer",
+    "pagePath": "/pip-checker",
+    "problemReports": 187.0,
+    "problemsNormalised": 42817.43602301947,
+    "problemsPer100kViews": 228.9702461124036,
+    "problemsQuintile": 5.0,
+    "searchUniques": 85.0,
+    "searchesNormalised": 8846.577690706503,
+    "searchesPer100kViews": 104.07738459654709,
+    "searchesQuintile": 5.0,
+    "title": "Check how Personal Independence Payment (PIP) affects you",
+    "uniquePageviews": 81670.0
+]
+}`)))
+
 			statistics, err := SlugStatistics(client, "/foo", false)
 			Expect(err).To(BeNil())
 			Expect(statistics).ToNot(BeNil())
@@ -170,6 +194,10 @@ var _ = Describe("Statistics", func() {
 			Expect(len(statistics.SearchTerms[0].Searches)).To(Equal(1))
 			Expect(statistics.SearchTerms[0].Searches[0].Value).To(Equal(126))
 			Expect(statistics.SearchTerms[0].Searches[0].Timestamp).To(Equal(searchesTimestamp))
+
+			Expect(statistics.InfoStatistics[0].Path).To(Equal("/pip-checker"))
+			Expect(statistics.InfoStatistics[0].ProblemsQuintile).To(Equal(5.0))
+			Expect(statistics.InfoStatistics[0].SearchesQuintile).To(Equal(5.0))
 		})
 
 	})

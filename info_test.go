@@ -60,6 +60,9 @@ var _ = Describe("Info", func() {
 			} else if strings.Contains(r.URL.Path, "page-contacts") {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, problemReportsResponse)
+			} else if strings.Contains(r.URL.Path, "info-statistics") {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprintln(w, infoStatisticsResponse)
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
@@ -78,6 +81,7 @@ var _ = Describe("Info", func() {
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
 		searchesResponse = `{"data":[]}`
 		pageviewsResponse = `{"data":[]}`
+		infoStatisticsResponse = `{"data":[]}`
 		termsResponse = `{"data":[]}`
 	})
 
@@ -108,6 +112,7 @@ var _ = Describe("Info", func() {
 			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response.json")
 			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
 			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			infoStatisticsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_infostatistics_response.json")
 			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
 			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_response.json")
 			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
@@ -115,6 +120,7 @@ var _ = Describe("Info", func() {
 			contentAPIResponse = string(contentAPIResponseBytes)
 			needAPIResponse = string(needAPIResponseBytes)
 			pageviewsResponse = string(pageviewsResponseBytes)
+			infoStatisticsResponse = string(infoStatisticsResponseBytes)
 			searchesResponse = string(searchesResponseBytes)
 			problemReportsResponse = string(problemReportsResponseBytes)
 			termsResponse = string(termsResponseBytes)

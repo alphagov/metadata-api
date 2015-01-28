@@ -11,10 +11,11 @@ import (
 )
 
 type Statistics struct {
-	PageViews      []Statistic `json:"page_views"`
-	Searches       []Statistic `json:"searches"`
-	ProblemReports []Statistic `json:"problem_reports"`
-	SearchTerms    SearchTerms `json:"search_terms"`
+	PageViews      []Statistic 		`json:"page_views"`
+	Searches       []Statistic 		`json:"searches"`
+	ProblemReports []Statistic 		`json:"problem_reports"`
+	SearchTerms    SearchTerms 		`json:"search_terms"`
+	InfoStatistics []InfoStatistic 	`json:"info_statistics"`
 }
 
 type SearchTerms []SearchTerm
@@ -46,12 +47,32 @@ type SearchUniquesForDate struct {
 	SearchUniques float32   `json:"searchUniques:sum"`
 }
 
+type InfoStatistic struct {
+	Path      				string    	`json:"pagePath"`
+	Title      				string    	`json:"title"`
+	Format      			string    	`json:"format"`
+	Timestamp 				time.Time 	`json:"_timestamp"`
+	StartAt 				time.Time 	`json:"_start_at"`
+	EndAt 					time.Time 	`json:"_end_at"`
+	PageViews 				float32  	`json:"uniquePageviews:sum"`
+	ProblemReports 			float32 	`json:"problemReports"`
+	ProblemsNormalised 		float32 	`json:"problemsNormalised"`
+	ProblemsPer100kViews 	float32 	`json:"problemsPer100kViews"`
+	ProblemsQuintile 		int 		`json:"problemsQuintile"`
+	SearchUniqes 			float32 	`json:"searchUniques"`
+	SearchesNormalised 		float32 	`json:"searchesNormalised"`
+	SearchesPer100kViews 	float32 	`json:"searchesPer100kViews"`
+	SearchesQuintile 		int 		`json:"searchesQuintile"`
+}
+
+
 func (terms SearchTerms) Len() int           { return len(terms) }
 func (terms SearchTerms) Swap(i, j int)      { terms[i], terms[j] = terms[j], terms[i] }
 func (terms SearchTerms) Less(i, j int) bool { return terms[i].TotalSearches > terms[j].TotalSearches }
 
 func SlugStatistics(client performanceclient.DataClient, slug string, is_multipart bool) (*Statistics, error) {
 	var pageViews, searches, problemReports []Statistic
+	var infoStatistics []InfoStatistic
 	var searchTerms SearchTerms
 	var waitGroup sync.WaitGroup
 
@@ -104,6 +125,23 @@ func SlugStatistics(client performanceclient.DataClient, slug string, is_multipa
 			errorChannel <- err
 		} else {
 			if searches, err = parseSearches(searchesResponse); err != nil {
+				errorChannel <- err
+			}
+		}
+	}()
+
+    waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+
+		query_params := performanceclient.QueryParams{
+			FilterBy:	[]string{"pagePath:" + slug},
+		}
+
+		if infoStatisticsResponse, err := client.Fetch("govuk-info", "info-statistics", query_params); err != nil {
+			errorChannel <- err
+		} else {
+			if infoStatistics, err = parseInfoStatistics(infoStatisticsResponse); err != nil {
 				errorChannel <- err
 			}
 		}
@@ -171,6 +209,7 @@ func SlugStatistics(client performanceclient.DataClient, slug string, is_multipa
 		Searches:       searches,
 		ProblemReports: problemReports,
 		SearchTerms:    searchTerms,
+		InfoStatistics: infoStatistics,
 	}, nil
 }
 
@@ -286,3 +325,16 @@ func parseSearchTerms(response *performanceclient.BackdropResponse) (SearchTerms
 	}
 	return terms, nil
 }
+
+func parseInfoStatistics(response *performanceclient.BackdropResponse) ([]InfoStatistic, error) {
+	var data []InfoStatistic
+
+	err := json.Unmarshal(response.Data, &data)
+
+	if err != nil {
+		return []InfoStatistic{}, err
+	}
+
+	return data, nil
+}
+

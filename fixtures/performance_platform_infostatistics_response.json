@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "_day_start_at": "2014-12-16T00:00:00+00:00",
+      "_end_at": "2015-01-27T00:00:00+00:00",
+      "_hour_start_at": "2014-12-16T00:00:00+00:00",
+      "_id": "54c80f6df3ea6b0465b5dca8",
+      "_month_start_at": "2014-12-01T00:00:00+00:00",
+      "_quarter_start_at": "2014-10-01T00:00:00+00:00",
+      "_start_at": "2014-12-16T00:00:00+00:00",
+      "_timestamp": "2014-12-16T00:00:00+00:00",
+      "_updated_at": "2015-01-27T22:21:33.288000+00:00",
+      "_week_start_at": "2014-12-15T00:00:00+00:00",
+      "_year_start_at": "2014-01-01T00:00:00+00:00",
+      "format": "smart-answer",
+      "pagePath": "/pip-checker",
+      "problemReports": 187.0,
+      "problemsNormalised": 42817.43602301947,
+      "problemsPer100kViews": 228.9702461124036,
+      "problemsQuintile": 5.0,
+      "searchUniques": 85.0,
+      "searchesNormalised": 8846.577690706503,
+      "searchesPer100kViews": 104.07738459654709,
+      "searchesQuintile": 5.0,
+      "title": "Check how Personal Independence Payment (PIP) affects you",
+      "uniquePageviews": 81670.0
+    }
+  ]
+}

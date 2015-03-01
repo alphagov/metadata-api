@@ -43,7 +43,10 @@ var _ = Describe("Need", func() {
     "yearly_searches": null,
     "other_evidence": null,
     "legislation": null,
-    "duplicate_of": null
+    "duplicate_of": null,
+    "status": {
+      "description": "valid"
+    }
 }`
 
 			need, err := ParseNeedResponse([]byte(exampleNeedApiResponse))
@@ -65,6 +68,9 @@ var _ = Describe("Need", func() {
 					},
 				},
 				Justifications: []string{"This is a test need"},
+				Status:          &NeedStatus{
+					Description:   "valid",
+				},
 			}))
 		})
 	})

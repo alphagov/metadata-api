@@ -43,8 +43,6 @@ var _ = Describe("Need", func() {
     "yearly_searches": null,
     "other_evidence": null,
     "legislation": null,
-    "in_scope": null,
-    "out_of_scope_reason": null,
     "duplicate_of": null
 }`
 

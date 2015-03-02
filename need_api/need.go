@@ -32,8 +32,6 @@ type Need struct {
 	OtherEvidence      string         `json:"other_evidence"`
 	Legislation        string         `json:"legislation"`
 	AllOrganisations   bool           `json:"applies_to_all_organisations"`
-	InScope            bool           `json:"in_scope"`
-	OutOfScopeReason   string         `json:"out_of_scope_reason"`
 	DuplicateOf        int            `json:"duplicate_of"`
 }
 

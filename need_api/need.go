@@ -15,6 +15,10 @@ type Organisation struct {
 	ChildIDs     []string `json:"child_ids"`
 }
 
+type NeedStatus struct {
+	Description  string   `json:"description"`
+}
+
 type Need struct {
 	ID                 int            `json:"id"`
 	Role               string         `json:"role"`
@@ -33,6 +37,7 @@ type Need struct {
 	Legislation        string         `json:"legislation"`
 	AllOrganisations   bool           `json:"applies_to_all_organisations"`
 	DuplicateOf        int            `json:"duplicate_of"`
+	Status             *NeedStatus    `json:"status"`
 }
 
 func ParseNeedResponse(response []byte) (*Need, error) {

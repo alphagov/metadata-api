@@ -25,5 +25,8 @@
   "yearly_searches": null,
   "other_evidence": null,
   "legislation": null,
-  "duplicate_of": null
+  "duplicate_of": null,
+  "status": {
+    "description": "valid"
+  }
 }

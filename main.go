@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/jabley/spdy"
 	"github.com/alphagov/performanceplatform-client.go"
 	"github.com/codegangsta/negroni"
 	"github.com/meatballhat/negroni-logrus"
@@ -97,6 +98,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 }
 
 func main() {
+	http.DefaultClient = &http.Client{Transport: &spdy.Transport{}}
 	config, err := ReadConfig("config.json")
 	if err != nil {
 		logging.Fatalln("Couldn't load configuration", err)

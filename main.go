@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -64,24 +65,46 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 			return
 		}
 
-		needStart := time.Now()
-		for _, needID := range artefact.Details.NeedIDs {
-			need, err := need_api.FetchNeed(needAPI, config.BearerTokenNeedAPI, needID)
-			if err != nil {
-				renderError(w, http.StatusInternalServerError, "Need: "+err.Error())
+		var waitGroup sync.WaitGroup
+		errorChannel := make(chan string)
+
+		waitGroup.Add(1)
+		go func() {
+			defer waitGroup.Done()
+
+			needStart := time.Now()
+			for _, needID := range artefact.Details.NeedIDs {
+				need, nErr := need_api.FetchNeed(needAPI, config.BearerTokenNeedAPI, needID)
+				if nErr != nil {
+					errorChannel <- "Need:" + nErr.Error()
+					return
+				}
+				needs = append(needs, need)
+			}
+			statsDTiming("needs", needStart, time.Now())
+		}()
+
+		waitGroup.Add(1)
+		var performance *performance_platform.Statistics
+		go func() {
+			defer waitGroup.Done()
+			var pErr error
+
+			performanceStart := time.Now()
+			ppClient := performanceclient.NewDataClient(performanceAPI, logging)
+			is_multipart := (len(artefact.Details.Parts) != 0) || (artefact.Format == "smart-answer")
+			performance, pErr = performance_platform.SlugStatistics(ppClient, slug, is_multipart)
+			statsDTiming("performance", performanceStart, time.Now())
+			if pErr != nil {
+				errorChannel <- "Performance:" + pErr.Error()
 				return
 			}
-			needs = append(needs, need)
-		}
-		statsDTiming("needs", needStart, time.Now())
+		}()
 
-		performanceStart := time.Now()
-		ppClient := performanceclient.NewDataClient(performanceAPI, logging)
-		is_multipart := (len(artefact.Details.Parts) != 0) || (artefact.Format == "smart-answer")
-		performance, err := performance_platform.SlugStatistics(ppClient, slug, is_multipart)
-		statsDTiming("performance", performanceStart, time.Now())
-		if err != nil {
-			renderError(w, http.StatusInternalServerError, "Performance: "+err.Error())
+		waitGroup.Wait()
+
+		if len(errorChannel) > 0 {
+			renderError(w, http.StatusInternalServerError, <-errorChannel)
 			return
 		}
 

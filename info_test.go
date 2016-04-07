@@ -51,7 +51,7 @@ var _ = Describe("Info", func() {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, pageviewsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") &&
-			  r.URL.Query().Get("group_by") == "searchKeyword" {
+				r.URL.Query().Get("group_by") == "searchKeyword" {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, termsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") {

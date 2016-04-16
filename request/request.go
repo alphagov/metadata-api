@@ -12,8 +12,6 @@ var (
 )
 
 func NewRequest(url, bearerToken string) (*http.Response, error) {
-	client := &http.Client{}
-
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -22,7 +20,7 @@ func NewRequest(url, bearerToken string) (*http.Response, error) {
 	request.Header.Add("Authorization", "Bearer "+bearerToken)
 	request.Header.Add("Accept", "application/json")
 
-	response, err := client.Do(request)
+	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return nil, err
 	}

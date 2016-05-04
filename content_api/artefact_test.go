@@ -1,6 +1,9 @@
 package content_api_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+
 	. "github.com/alphagov/metadata-api/content_api"
 
 	. "github.com/onsi/ginkgo"
@@ -67,18 +70,48 @@ var _ = Describe("Artefact", func() {
 					NeedIDs:             []string{"100567"},
 					BusinessProposition: true,
 					Description:         "this is a test artefact",
-	                Parts: []Part{
-	                    Part{
-	                        WebURL: "https://www.gov.uk/housing-benefit/overview",
-	                        Title: "Overview",
-	                    },
-	                    Part{
-	                        WebURL: "https://www.gov.uk/housing-benefit/what-youll-get",
-	                        Title: "What you'll get",
-	                    },
-	                },
+					Parts: []Part{
+						{
+							WebURL: "https://www.gov.uk/housing-benefit/overview",
+							Title:  "Overview",
+						},
+						{
+							WebURL: "https://www.gov.uk/housing-benefit/what-youll-get",
+							Title:  "What you'll get",
+						},
+					},
 				},
 			}))
 		})
+
+		It("returns an error when the JSON isn't an artefact", func() {
+			artefact, err := ParseArtefactResponse([]byte(`{
+  "errors": [
+    {
+      "status": "422",
+      "source": { "pointer": "/data/attributes/first-name" },
+      "title":  "Invalid Attribute",
+      "detail": "First name must contain at least three characters."
+    }
+  ]
+}`))
+
+			Expect(err).ToNot(BeNil())
+			Expect(artefact).To(BeNil())
+		})
+
+		It("returns an error when the server returns an error", func() {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+			}))
+
+			defer server.Close()
+
+			need, err := FetchArtefact(server.URL, "a-bearer-token", "/a-slug/")
+
+			Expect(need).To(BeNil())
+			Expect(err).ToNot(BeNil())
+		})
+
 	})
 })

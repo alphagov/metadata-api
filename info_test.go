@@ -51,7 +51,7 @@ var _ = Describe("Info", func() {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, pageviewsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") &&
-			  r.URL.Query().Get("group_by") == "searchKeyword" {
+				r.URL.Query().Get("group_by") == "searchKeyword" {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, termsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") {
@@ -188,11 +188,13 @@ var _ = Describe("Info", func() {
 	Describe("fetching a valid slug with a multipart format", func() {
 		BeforeEach(func() {
 			contentAPIResponseBytes, _ := ioutil.ReadFile("fixtures/content_api_response_with_parts.json")
+			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
 			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_multipart_response.json")
 			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_multipart_response.json")
 			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_multipart_response.json")
 
 			contentAPIResponse = string(contentAPIResponseBytes)
+			needAPIResponse = string(needAPIResponseBytes)
 			pageviewsResponse = string(pageviewsResponseBytes)
 			searchesResponse = string(searchesResponseBytes)
 			problemReportsResponse = string(problemReportsResponseBytes)

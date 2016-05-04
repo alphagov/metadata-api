@@ -340,7 +340,6 @@ var _ = Describe("Statistics", func() {
 				To(Equal(searchesTimestamp))
 		})
 
-
 	})
 
 })

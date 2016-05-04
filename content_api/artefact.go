@@ -2,13 +2,16 @@ package content_api
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/alphagov/metadata-api/request"
 )
 
+var ErrUnparsableArtefact = errors.New("Got JSON that doesn't look like an artefact")
+
 type Part struct {
-	WebURL  string `json:"web_url"`
-	Title   string `json:"title"`
+	WebURL string `json:"web_url"`
+	Title  string `json:"title"`
 }
 
 type Detail struct {
@@ -32,6 +35,10 @@ func FetchArtefact(contentAPI, bearerToken, slug string) (*Artefact, error) {
 		return nil, err
 	}
 
+	if artefactResponse.StatusCode/100 != 2 {
+		return nil, errors.New("Content API error " + artefactResponse.Status)
+	}
+
 	artefactBody, err := request.ReadResponseBody(artefactResponse)
 	if err != nil {
 		return nil, err
@@ -49,6 +56,10 @@ func ParseArtefactResponse(response []byte) (*Artefact, error) {
 	artefact := &Artefact{}
 	if err := json.Unmarshal(response, &artefact); err != nil {
 		return nil, err
+	}
+
+	if len(artefact.ID) == 0 {
+		return nil, ErrUnparsableArtefact
 	}
 
 	return artefact, nil

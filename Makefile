@@ -10,9 +10,7 @@ deps:
 	gom install
 
 vendor: deps
-	rm -rf _vendor/src/$(REPO_PATH)
-	mkdir -p _vendor/src/$(ORG_PATH)
-	ln -s $(CURDIR) _vendor/src/$(REPO_PATH)
+	mkdir -p vendor
 
 test: vendor
 	gom test -v $(REPO_PATH) \
@@ -28,4 +26,4 @@ run: build
 	./metadata-api
 
 clean:
-	rm -rf bin metadata-api _vendor
+	rm -rf bin metadata-api vendor

@@ -27,3 +27,4 @@ _testmain.go
 _vendor
 metadata-api
 test_config.json
+vendor

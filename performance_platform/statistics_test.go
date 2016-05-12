@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/alphagov/performanceplatform-client.go"
+	"github.com/alphagov/performanceplatform-client-go"
 	"github.com/onsi/gomega/ghttp"
 )
 
@@ -339,7 +339,6 @@ var _ = Describe("Statistics", func() {
 			Expect(statistics.Searches[0].Timestamp).
 				To(Equal(searchesTimestamp))
 		})
-
 
 	})
 

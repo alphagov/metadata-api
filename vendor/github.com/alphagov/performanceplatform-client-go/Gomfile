@@ -1,0 +1,9 @@
+gom 'github.com/Sirupsen/logrus'
+gom 'github.com/cenkalti/backoff'
+gom 'github.com/google/go-querystring/query'
+gom 'golang.org/x/tools/cmd/cover'
+
+group :test do
+  gom 'github.com/onsi/ginkgo'
+  gom 'github.com/onsi/gomega'
+end

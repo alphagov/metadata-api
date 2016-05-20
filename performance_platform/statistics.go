@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alphagov/performanceplatform-client.go"
+	"github.com/alphagov/performanceplatform-client-go"
 	"github.com/jinzhu/now"
 )
 

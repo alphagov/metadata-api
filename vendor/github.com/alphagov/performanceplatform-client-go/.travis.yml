@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.4
+
+before_install:
+  - export PATH=$HOME/gopath/bin:$PATH
+
+matrix:
+  fast_finish: true
+
+script:
+  - make
+
+notifications:
+  email: false
+
+branches:
+  except:
+    - /^release_.*$/

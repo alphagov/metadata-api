@@ -24,6 +24,5 @@ _testmain.go
 *.prof
 
 # Project-specific
-_vendor
 metadata-api
 test_config.json

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/alphagov/performanceplatform-client.go"
+	"github.com/alphagov/performanceplatform-client-go"
 	"github.com/codegangsta/negroni"
 	"github.com/meatballhat/negroni-logrus"
 	"github.com/quipo/statsd"

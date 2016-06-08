@@ -16,6 +16,11 @@
 			"Rev": "dbee1ebfa7c05bce99253e0908ff15889e73d5a7"
 		},
 		{
+			"ImportPath": "github.com/alphagov/plek/go",
+			"Comment": "v1.12.0-6-ge57c986",
+			"Rev": "e57c986c8163257267197590ec0211f9ddb1da46"
+		},
+		{
 			"ImportPath": "github.com/cenkalti/backoff",
 			"Comment": "v1.0.0-1-gc29158a",
 			"Rev": "c29158af31815ccc31ca29c86c121bc39e00d3d8"
@@ -39,14 +44,6 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
-		},
-		{
-			"ImportPath": "github.com/golang/protobuf/proto/proto3_proto",
-			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
-		},
-		{
-			"ImportPath": "github.com/golang/protobuf/ptypes/any",
 			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
 		},
 		{
@@ -157,11 +154,6 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega/ghttp",
-			"Comment": "v1.0-97-gc73e516",
-			"Rev": "c73e51675ad2455a4515b6213eb7145eaade4824"
-		},
-		{
-			"ImportPath": "github.com/onsi/gomega/ghttp/protobuf",
 			"Comment": "v1.0-97-gc73e516",
 			"Rev": "c73e51675ad2455a4515b6213eb7145eaade4824"
 		},

@@ -11,6 +11,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/kr/pretty"
 )
 
 var _ = Describe("Info", func() {
@@ -51,7 +53,7 @@ var _ = Describe("Info", func() {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, pageviewsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") &&
-			  r.URL.Query().Get("group_by") == "searchKeyword" {
+				r.URL.Query().Get("group_by") == "searchKeyword" {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, termsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") {
@@ -128,27 +130,9 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Artefact.Details.NeedIDs).To(Equal([]string{"100567"}))
-
-			Expect(metadata.Needs).To(HaveLen(1))
-			Expect(metadata.Needs[0].ID).To(Equal(100019))
-
-			Expect(metadata.Performance.PageViews).To(HaveLen(2))
-			Expect(metadata.Performance.PageViews[0].Value).To(Equal(25931))
-			Expect(metadata.Performance.Searches).To(HaveLen(3))
-			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
-			Expect(metadata.Performance.Searches[2].Value).To(Equal(16))
-			Expect(metadata.Performance.ProblemReports).To(HaveLen(3))
-			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports[2].Value).To(Equal(16))
-			Expect(metadata.Performance.SearchTerms).To(HaveLen(6))
-			Expect(metadata.Performance.SearchTerms[1].Keyword).To(Equal("s2s"))
-			Expect(metadata.Performance.SearchTerms[1].Searches).To(HaveLen(1))
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_single_page.json")
+			diff := Diff(string(expectedResultBytes), body)
+			Expect(diff).To(BeNil())
 		})
 	})
 
@@ -175,12 +159,9 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Needs).To(HaveLen(0))
+			expectedResponseBytes, _ := ioutil.ReadFile("fixtures/info_response_empty_needs.json")
+			diff := Diff(string(expectedResponseBytes), body)
+			Expect(diff).To(BeNil())
 		})
 
 	})
@@ -206,21 +187,9 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Artefact.Details.Parts[1].WebURL).To(Equal(string("https://www.gov.uk/housing-benefit/what-youll-get")))
-
-			Expect(metadata.Performance.PageViews).To(HaveLen(4))
-			Expect(metadata.Performance.PageViews[3].Value).To(Equal(27697))
-			Expect(metadata.Performance.Searches).To(HaveLen(6))
-			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
-			Expect(metadata.Performance.Searches[4].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports).To(HaveLen(6))
-			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports[5].Value).To(Equal(16))
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_multipart.json")
+			diff := Diff(string(expectedResultBytes), body)
+			Expect(diff).To(BeNil())
 		})
 
 	})
@@ -250,16 +219,9 @@ var _ = Describe("Info", func() {
 			response, err := getSlug(testServer.URL, "not-found-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusNotFound))
-
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
-
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("not found"))
-			Expect(metadata.Artefact).To(BeNil())
-			Expect(metadata.Needs).To(BeNil())
+			Expect(body).To(ContainSubstring("\"status\":\"not found\""))
 		})
 	})
 })

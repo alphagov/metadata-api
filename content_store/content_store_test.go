@@ -22,12 +22,16 @@ func (req stubRequest) GetJSON(url string, bearerToken string) (string, error) {
 	unknown_url := base_url + "unknown"
 	five_hundred_url := base_url + "five_hundred"
 	invalid_response_url := base_url + "invalid_response"
+	placeholder := base_url + "placeholder"
 
 	validResponseBytes, _ := ioutil.ReadFile("../fixtures/content_store_response.json")
 	validJSONResponse := string(validResponseBytes)
 
 	invalidResponseBytes, _ := ioutil.ReadFile("../fixtures/content_store_response_invalid.json")
 	invalidJSONResponse := string(invalidResponseBytes)
+
+	placeholderResponseBytes, _ := ioutil.ReadFile("../fixtures/content_store_response_placeholder.json")
+	placeholderJSONResponse := string(placeholderResponseBytes)
 
 	if url == known_url {
 		return validJSONResponse, nil
@@ -37,6 +41,8 @@ func (req stubRequest) GetJSON(url string, bearerToken string) (string, error) {
 		return "", StatusError{404}
 	} else if url == five_hundred_url {
 		return "", StatusError{500}
+	} else if url == placeholder {
+		return placeholderJSONResponse, nil
 	} else {
 		return "", nil
 	}
@@ -63,29 +69,39 @@ var _ = Describe("content_store", func() {
 
 		Context("content not found", func() {
 			It("returns a 404 if the content isn't found", func() {
-				contentItem, err := content_store.GetArtefact("unknown", stub)
+				artefact, err := content_store.GetArtefact("unknown", stub)
 				Expect(err).NotTo(BeNil())
 				stErr, _ := err.(StatusError)
 				Expect(stErr.StatusCode).To(Equal(404))
-				Expect(contentItem).To(BeNil())
+				Expect(artefact).To(BeNil())
 			})
 		})
 
 		Context("request returns a 500", func() {
 			It("returns a 500 if the request raises an error", func() {
-				contentItem, err := content_store.GetArtefact("five_hundred", stub)
+				artefact, err := content_store.GetArtefact("five_hundred", stub)
 				Expect(err).NotTo(BeNil())
 				stErr, _ := err.(StatusError)
 				Expect(stErr.StatusCode).To(Equal(500))
-				Expect(contentItem).To(BeNil())
+				Expect(artefact).To(BeNil())
 			})
 		})
 
 		Context("an invalid content item", func() {
 			It("returns an error", func() {
-				contentItem, err := content_store.GetArtefact("invalid_response", stub)
+				artefact, err := content_store.GetArtefact("invalid_response", stub)
 				Expect(err).NotTo(BeNil())
-				Expect(contentItem).To(BeNil())
+				Expect(artefact).To(BeNil())
+			})
+		})
+
+		Context("a placeholder item is returned", func() {
+			It("returns a 404 and a nil artefact", func() {
+				artefact, err := content_store.GetArtefact("placeholder", stub)
+				Expect(err).NotTo(BeNil())
+				stErr, _ := err.(StatusError)
+				Expect(stErr.StatusCode).To(Equal(404))
+				Expect(artefact).To(BeNil())
 			})
 		})
 	})

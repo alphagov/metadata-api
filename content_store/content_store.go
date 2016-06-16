@@ -3,6 +3,8 @@ package content_store
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	. "github.com/alphagov/metadata-api/content"
 	"github.com/alphagov/plek/go"
 )
@@ -30,6 +32,13 @@ func parseJSON(response string) (*Artefact, error) {
 	var jsonMap map[string]interface{}
 	if err := json.Unmarshal([]byte(response), &jsonMap); err != nil {
 		return nil, err
+	}
+
+	documentType := jsonMap["document_type"]
+	if documentType != nil {
+		if strings.Contains(documentType.(string), "placeholder") {
+			return nil, StatusError{404}
+		}
 	}
 
 	artefact.ID = jsonMap["content_id"].(string)

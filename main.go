@@ -36,13 +36,15 @@ var (
 	logging = loggingMiddleware.Logger
 
 	statsdClient = newStatsDClient("localhost:8125", "metadata-api.")
+	apiRequest   = content.ApiRequest{}
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) func(http.ResponseWriter, *http.Request) {
+func InfoHandler(contentAPI, needAPI, performanceAPI string,
+	apiRequest content.JSONRequest, config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var needs []*need_api.Need = make([]*need_api.Need, 0)
 
@@ -55,7 +57,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 
 		artefactStart := time.Now()
 		statsDTiming("artefact", artefactStart, time.Now())
-		artefact, err := content_store.GetArtefact(slug, content.ApiRequest{})
+		artefact, err := content_store.GetArtefact(slug, apiRequest)
 		if artefact == nil {
 			artefact, err = content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 			if err != nil {
@@ -110,7 +112,7 @@ func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 	httpMux.HandleFunc("/info/", InfoHandler(
-		contentAPI, needAPI, performanceAPI, config))
+		contentAPI, needAPI, performanceAPI, apiRequest, config))
 
 	middleware := negroni.New()
 	middleware.Use(loggingMiddleware)

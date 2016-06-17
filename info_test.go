@@ -15,11 +15,22 @@ import (
 	. "github.com/kr/pretty"
 )
 
+type stubbedJSONRequest struct {
+	Response string
+}
+
+func (apiRequest stubbedJSONRequest) GetJSON(url string, bearerToken string) (string, error) {
+	return apiRequest.Response, nil
+}
+
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse, pageviewsResponse, searchesResponse, problemReportsResponse, termsResponse string
+		contentAPIResponse, contentStoreResponse, needAPIResponse, pageviewsResponse,
+		searchesResponse, problemReportsResponse, termsResponse string
 
 		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
+
+		testApiRequest stubbedJSONRequest
 
 		config = &Config{
 			BearerTokenContentAPI: "some-secret-content-api-bearer-string",
@@ -38,6 +49,7 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, contentAPIResponse)
 		})
+
 		testNeedAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenNeedAPI {
 				w.WriteHeader(http.StatusUnauthorized)
@@ -48,6 +60,7 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, needAPIResponse)
 		})
+
 		testPerformanceAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(r.URL.Path, "page-statistics") {
 				w.WriteHeader(http.StatusOK)
@@ -67,8 +80,12 @@ var _ = Describe("Info", func() {
 			}
 		})
 
+		testApiRequest = stubbedJSONRequest{
+			contentStoreResponse,
+		}
+
 		testServer = testHandlerServer(InfoHandler(
-			testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
+			testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, testApiRequest, config))
 	})
 
 	AfterEach(func() {
@@ -77,6 +94,7 @@ var _ = Describe("Info", func() {
 		testNeedAPI.Close()
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
+		contentStoreResponse = ``
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
 		searchesResponse = `{"data":[]}`
 		pageviewsResponse = `{"data":[]}`
@@ -132,6 +150,38 @@ var _ = Describe("Info", func() {
 
 			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_single_page.json")
 			diff := Diff(string(expectedResultBytes), body)
+			Expect(diff).To(BeNil())
+		})
+	})
+
+	Describe("fetching a valid slug from the content store", func() {
+		BeforeEach(func() {
+			contentStoreResponseBytes, _ := ioutil.ReadFile("fixtures/content_store_response.json")
+			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
+			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_response.json")
+			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
+
+			contentStoreResponse = string(contentStoreResponseBytes)
+			needAPIResponse = string(needAPIResponseBytes)
+			pageviewsResponse = string(pageviewsResponseBytes)
+			searchesResponse = string(searchesResponseBytes)
+			problemReportsResponse = string(problemReportsResponseBytes)
+			termsResponse = string(termsResponseBytes)
+		})
+
+		It("returns a metadata response with the Artefact, Needs and Performance data exposed", func() {
+			response, err := getSlug(testServer.URL, "dummy-slug")
+			Expect(err).To(BeNil())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+
+			body, err := readResponseBody(response)
+			Expect(err).To(BeNil())
+
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_content_store.json")
+			trimmedString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedString, body)
 			Expect(diff).To(BeNil())
 		})
 	})
@@ -208,7 +258,7 @@ var _ = Describe("Info", func() {
 			})
 
 			testServer = testHandlerServer(InfoHandler(
-				testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
+				testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, testApiRequest, config))
 		})
 
 		AfterEach(func() {

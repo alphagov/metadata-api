@@ -47,6 +47,14 @@
 			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
 		},
 		{
+			"ImportPath": "github.com/golang/protobuf/proto/proto3_proto",
+			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/ptypes/any",
+			"Rev": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83"
+		},
+		{
 			"ImportPath": "github.com/google/go-querystring/query",
 			"Rev": "9235644dd9e52eeae6fa48efd539fdc351a0af53"
 		},
@@ -57,6 +65,15 @@
 		{
 			"ImportPath": "github.com/jinzhu/now",
 			"Rev": "ce80572eb55aa0ac839330041ca9db1afa5f1f6c"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-29-gadd1dbc",
+			"Rev": "add1dbc86daf0f983cd4a48ceb39deb95c729b67"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "7cafcd837844e784b526369c9bce262804aebc60"
 		},
 		{
 			"ImportPath": "github.com/meatballhat/negroni-logrus",
@@ -154,6 +171,11 @@
 		},
 		{
 			"ImportPath": "github.com/onsi/gomega/ghttp",
+			"Comment": "v1.0-97-gc73e516",
+			"Rev": "c73e51675ad2455a4515b6213eb7145eaade4824"
+		},
+		{
+			"ImportPath": "github.com/onsi/gomega/ghttp/protobuf",
 			"Comment": "v1.0-97-gc73e516",
 			"Rev": "c73e51675ad2455a4515b6213eb7145eaade4824"
 		},

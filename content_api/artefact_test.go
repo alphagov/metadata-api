@@ -1,6 +1,7 @@
 package content_api_test
 
 import (
+	. "github.com/alphagov/metadata-api/content"
 	. "github.com/alphagov/metadata-api/content_api"
 
 	. "github.com/onsi/ginkgo"
@@ -67,16 +68,16 @@ var _ = Describe("Artefact", func() {
 					NeedIDs:             []string{"100567"},
 					BusinessProposition: true,
 					Description:         "this is a test artefact",
-	                Parts: []Part{
-	                    Part{
-	                        WebURL: "https://www.gov.uk/housing-benefit/overview",
-	                        Title: "Overview",
-	                    },
-	                    Part{
-	                        WebURL: "https://www.gov.uk/housing-benefit/what-youll-get",
-	                        Title: "What you'll get",
-	                    },
-	                },
+					Parts: []Part{
+						Part{
+							WebURL: "https://www.gov.uk/housing-benefit/overview",
+							Title:  "Overview",
+						},
+						Part{
+							WebURL: "https://www.gov.uk/housing-benefit/what-youll-get",
+							Title:  "What you'll get",
+						},
+					},
 				},
 			}))
 		})

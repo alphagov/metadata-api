@@ -2,9 +2,12 @@ package need_api
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/alphagov/metadata-api/request"
 )
+
+var ErrUnparsableNeed = errors.New("Got JSON that doesn't look like a need")
 
 type Organisation struct {
 	ID           string   `json:"id"`
@@ -16,7 +19,7 @@ type Organisation struct {
 }
 
 type NeedStatus struct {
-	Description  string   `json:"description"`
+	Description string `json:"description"`
 }
 
 type Need struct {
@@ -46,6 +49,10 @@ func ParseNeedResponse(response []byte) (*Need, error) {
 		return nil, err
 	}
 
+	if need.ID == 0 {
+		return nil, ErrUnparsableNeed
+	}
+
 	return need, nil
 }
 
@@ -53,6 +60,10 @@ func FetchNeed(needAPI, bearerToken, id string) (*Need, error) {
 	needResponse, err := request.NewRequest(needAPI+"/needs/"+id, bearerToken)
 	if err != nil {
 		return nil, err
+	}
+
+	if needResponse.StatusCode/100 != 2 {
+		return nil, errors.New("Need API error " + needResponse.Status)
 	}
 
 	needBody, err := request.ReadResponseBody(needResponse)

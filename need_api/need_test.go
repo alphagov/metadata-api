@@ -1,6 +1,9 @@
 package need_api_test
 
 import (
+	"net/http"
+	"net/http/httptest"
+
 	. "github.com/alphagov/metadata-api/need_api"
 
 	. "github.com/onsi/ginkgo"
@@ -59,7 +62,7 @@ var _ = Describe("Need", func() {
 				Benefit:         "test",
 				OrganisationIDs: []string{"foo-id"},
 				Organisations: []Organisation{
-					Organisation{
+					{
 						ID:           "foo-id",
 						Name:         "Foo Name",
 						Status:       "joining",
@@ -68,10 +71,39 @@ var _ = Describe("Need", func() {
 					},
 				},
 				Justifications: []string{"This is a test need"},
-				Status:          &NeedStatus{
-					Description:   "valid",
+				Status: &NeedStatus{
+					Description: "valid",
 				},
 			}))
+		})
+
+		It("returns an error when it can't parse the string", func() {
+			need, err := ParseNeedResponse([]byte(`{
+  "errors": [
+    {
+      "status": "422",
+      "source": { "pointer": "/data/attributes/first-name" },
+      "title":  "Invalid Attribute",
+      "detail": "First name must contain at least three characters."
+    }
+  ]
+}`))
+
+			Expect(err).ToNot(BeNil())
+			Expect(need).To(BeNil())
+		})
+
+		It("returns an error when the server returns an error", func() {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+			}))
+
+			defer server.Close()
+
+			need, err := FetchNeed(server.URL, "a-bearer-token", "need-id")
+
+			Expect(need).To(BeNil())
+			Expect(err).ToNot(BeNil())
 		})
 	})
 })

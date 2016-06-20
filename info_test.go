@@ -149,7 +149,8 @@ var _ = Describe("Info", func() {
 			Expect(err).To(BeNil())
 
 			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_single_page.json")
-			diff := Diff(string(expectedResultBytes), body)
+			trimmedResultString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedResultString, body)
 			Expect(diff).To(BeNil())
 		})
 	})
@@ -210,7 +211,8 @@ var _ = Describe("Info", func() {
 			Expect(err).To(BeNil())
 
 			expectedResponseBytes, _ := ioutil.ReadFile("fixtures/info_response_empty_needs.json")
-			diff := Diff(string(expectedResponseBytes), body)
+			trimmedResultString := strings.TrimSpace(string(expectedResponseBytes))
+			diff := Diff(trimmedResultString, body)
 			Expect(diff).To(BeNil())
 		})
 
@@ -238,10 +240,10 @@ var _ = Describe("Info", func() {
 			Expect(err).To(BeNil())
 
 			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_multipart.json")
-			diff := Diff(string(expectedResultBytes), body)
+			trimmedResultString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedResultString, body)
 			Expect(diff).To(BeNil())
 		})
-
 	})
 
 	Describe("querying for a slug that doesn't exist", func() {

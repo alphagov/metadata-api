@@ -11,13 +11,26 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	. "github.com/kr/pretty"
 )
+
+type stubbedJSONRequest struct {
+	Response string
+}
+
+func (apiRequest stubbedJSONRequest) GetJSON(url string, bearerToken string) (string, error) {
+	return apiRequest.Response, nil
+}
 
 var _ = Describe("Info", func() {
 	var (
-		contentAPIResponse, needAPIResponse, pageviewsResponse, searchesResponse, problemReportsResponse, termsResponse string
+		contentAPIResponse, contentStoreResponse, needAPIResponse, pageviewsResponse,
+		searchesResponse, problemReportsResponse, termsResponse string
 
 		testServer, testContentAPI, testNeedAPI, testPerformanceAPI *httptest.Server
+
+		testApiRequest stubbedJSONRequest
 
 		config = &Config{
 			BearerTokenContentAPI: "some-secret-content-api-bearer-string",
@@ -36,6 +49,7 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, contentAPIResponse)
 		})
+
 		testNeedAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get("Authorization") != "Bearer "+config.BearerTokenNeedAPI {
 				w.WriteHeader(http.StatusUnauthorized)
@@ -46,12 +60,13 @@ var _ = Describe("Info", func() {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintln(w, needAPIResponse)
 		})
+
 		testPerformanceAPI = testHandlerServer(func(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(r.URL.Path, "page-statistics") {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, pageviewsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") &&
-			  r.URL.Query().Get("group_by") == "searchKeyword" {
+				r.URL.Query().Get("group_by") == "searchKeyword" {
 				w.WriteHeader(http.StatusOK)
 				fmt.Fprintln(w, termsResponse)
 			} else if strings.Contains(r.URL.Path, "search-terms") {
@@ -65,8 +80,12 @@ var _ = Describe("Info", func() {
 			}
 		})
 
+		testApiRequest = stubbedJSONRequest{
+			contentStoreResponse,
+		}
+
 		testServer = testHandlerServer(InfoHandler(
-			testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
+			testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, testApiRequest, config))
 	})
 
 	AfterEach(func() {
@@ -75,6 +94,7 @@ var _ = Describe("Info", func() {
 		testNeedAPI.Close()
 
 		contentAPIResponse = `{"_response_info":{"status":"not found"}}`
+		contentStoreResponse = ``
 		needAPIResponse = `{"_response_info":{"status":"not found"}}`
 		searchesResponse = `{"data":[]}`
 		pageviewsResponse = `{"data":[]}`
@@ -128,27 +148,42 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_single_page.json")
+			trimmedResultString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedResultString, body)
+			Expect(diff).To(BeNil())
+		})
+	})
+
+	Describe("fetching a valid slug from the content store", func() {
+		BeforeEach(func() {
+			contentStoreResponseBytes, _ := ioutil.ReadFile("fixtures/content_store_response.json")
+			needAPIResponseBytes, _ := ioutil.ReadFile("fixtures/need_api_response.json")
+			pageviewsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_pageviews_response.json")
+			searchesResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_searches_response.json")
+			problemReportsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_problem_reports_response.json")
+			termsResponseBytes, _ := ioutil.ReadFile("fixtures/performance_platform_terms_response.json")
+
+			contentStoreResponse = string(contentStoreResponseBytes)
+			needAPIResponse = string(needAPIResponseBytes)
+			pageviewsResponse = string(pageviewsResponseBytes)
+			searchesResponse = string(searchesResponseBytes)
+			problemReportsResponse = string(problemReportsResponseBytes)
+			termsResponse = string(termsResponseBytes)
+		})
+
+		It("returns a metadata response with the Artefact, Needs and Performance data exposed", func() {
+			response, err := getSlug(testServer.URL, "dummy-slug")
+			Expect(err).To(BeNil())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+
+			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Artefact.Details.NeedIDs).To(Equal([]string{"100567"}))
-
-			Expect(metadata.Needs).To(HaveLen(1))
-			Expect(metadata.Needs[0].ID).To(Equal(100019))
-
-			Expect(metadata.Performance.PageViews).To(HaveLen(2))
-			Expect(metadata.Performance.PageViews[0].Value).To(Equal(25931))
-			Expect(metadata.Performance.Searches).To(HaveLen(3))
-			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
-			Expect(metadata.Performance.Searches[2].Value).To(Equal(16))
-			Expect(metadata.Performance.ProblemReports).To(HaveLen(3))
-			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports[2].Value).To(Equal(16))
-			Expect(metadata.Performance.SearchTerms).To(HaveLen(6))
-			Expect(metadata.Performance.SearchTerms[1].Keyword).To(Equal("s2s"))
-			Expect(metadata.Performance.SearchTerms[1].Searches).To(HaveLen(1))
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_content_store.json")
+			trimmedString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedString, body)
+			Expect(diff).To(BeNil())
 		})
 	})
 
@@ -175,12 +210,10 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Needs).To(HaveLen(0))
+			expectedResponseBytes, _ := ioutil.ReadFile("fixtures/info_response_empty_needs.json")
+			trimmedResultString := strings.TrimSpace(string(expectedResponseBytes))
+			diff := Diff(trimmedResultString, body)
+			Expect(diff).To(BeNil())
 		})
 
 	})
@@ -206,23 +239,11 @@ var _ = Describe("Info", func() {
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
 
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("ok"))
-
-			Expect(metadata.Artefact.Details.Parts[1].WebURL).To(Equal(string("https://www.gov.uk/housing-benefit/what-youll-get")))
-
-			Expect(metadata.Performance.PageViews).To(HaveLen(4))
-			Expect(metadata.Performance.PageViews[3].Value).To(Equal(27697))
-			Expect(metadata.Performance.Searches).To(HaveLen(6))
-			Expect(metadata.Performance.Searches[0].Value).To(Equal(0))
-			Expect(metadata.Performance.Searches[4].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports).To(HaveLen(6))
-			Expect(metadata.Performance.ProblemReports[0].Value).To(Equal(0))
-			Expect(metadata.Performance.ProblemReports[5].Value).To(Equal(16))
+			expectedResultBytes, _ := ioutil.ReadFile("fixtures/info_response_multipart.json")
+			trimmedResultString := strings.TrimSpace(string(expectedResultBytes))
+			diff := Diff(trimmedResultString, body)
+			Expect(diff).To(BeNil())
 		})
-
 	})
 
 	Describe("querying for a slug that doesn't exist", func() {
@@ -239,7 +260,7 @@ var _ = Describe("Info", func() {
 			})
 
 			testServer = testHandlerServer(InfoHandler(
-				testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, config))
+				testContentAPI.URL, testNeedAPI.URL, testPerformanceAPI.URL, testApiRequest, config))
 		})
 
 		AfterEach(func() {
@@ -250,16 +271,9 @@ var _ = Describe("Info", func() {
 			response, err := getSlug(testServer.URL, "not-found-slug")
 			Expect(err).To(BeNil())
 			Expect(response.StatusCode).To(Equal(http.StatusNotFound))
-
 			body, err := readResponseBody(response)
 			Expect(err).To(BeNil())
-
-			metadata, err := ParseMetadataResponse([]byte(body))
-			Expect(err).To(BeNil())
-
-			Expect(metadata.ResponseInfo.Status).To(Equal("not found"))
-			Expect(metadata.Artefact).To(BeNil())
-			Expect(metadata.Needs).To(BeNil())
+			Expect(body).To(ContainSubstring("\"status\":\"not found\""))
 		})
 	})
 })

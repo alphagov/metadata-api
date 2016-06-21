@@ -12,7 +12,9 @@ import (
 	"github.com/quipo/statsd"
 	"gopkg.in/unrolled/render.v1"
 
+	"github.com/alphagov/metadata-api/content"
 	"github.com/alphagov/metadata-api/content_api"
+	"github.com/alphagov/metadata-api/content_store"
 	"github.com/alphagov/metadata-api/need_api"
 	"github.com/alphagov/metadata-api/performance_platform"
 	"github.com/alphagov/metadata-api/request"
@@ -34,13 +36,15 @@ var (
 	logging = loggingMiddleware.Logger
 
 	statsdClient = newStatsDClient("localhost:8125", "metadata-api.")
+	apiRequest   = content.ApiRequest{}
 )
 
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) func(http.ResponseWriter, *http.Request) {
+func InfoHandler(contentAPI, needAPI, performanceAPI string,
+	apiRequest content.JSONRequest, config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var needs []*need_api.Need = make([]*need_api.Need, 0)
 
@@ -52,16 +56,19 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 		}
 
 		artefactStart := time.Now()
-		artefact, err := content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 		statsDTiming("artefact", artefactStart, time.Now())
-		if err != nil {
-			if err == request.NotFoundError {
-				renderError(w, http.StatusNotFound, err.Error())
+		artefact, err := content_store.GetArtefact(slug, apiRequest)
+		if artefact == nil {
+			artefact, err = content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
+			if err != nil {
+				if err == request.NotFoundError {
+					renderError(w, http.StatusNotFound, err.Error())
+					return
+				}
+
+				renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
 				return
 			}
-
-			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
-			return
 		}
 
 		needStart := time.Now()
@@ -105,7 +112,7 @@ func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 	httpMux.HandleFunc("/info/", InfoHandler(
-		contentAPI, needAPI, performanceAPI, config))
+		contentAPI, needAPI, performanceAPI, apiRequest, config))
 
 	middleware := negroni.New()
 	middleware.Use(loggingMiddleware)

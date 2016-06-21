@@ -12,7 +12,9 @@ import (
 	"github.com/quipo/statsd"
 	"gopkg.in/unrolled/render.v1"
 
+	"github.com/alphagov/metadata-api/content"
 	"github.com/alphagov/metadata-api/content_api"
+	"github.com/alphagov/metadata-api/content_store"
 	"github.com/alphagov/metadata-api/need_api"
 	"github.com/alphagov/metadata-api/performance_platform"
 	"github.com/alphagov/metadata-api/request"
@@ -52,16 +54,19 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string, config *Config) fun
 		}
 
 		artefactStart := time.Now()
-		artefact, err := content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 		statsDTiming("artefact", artefactStart, time.Now())
-		if err != nil {
-			if err == request.NotFoundError {
-				renderError(w, http.StatusNotFound, err.Error())
+		artefact, err := content_store.GetArtefact(slug, content.ApiRequest{})
+		if artefact == nil {
+			artefact, err = content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
+			if err != nil {
+				if err == request.NotFoundError {
+					renderError(w, http.StatusNotFound, err.Error())
+					return
+				}
+
+				renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
 				return
 			}
-
-			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
-			return
 		}
 
 		needStart := time.Now()

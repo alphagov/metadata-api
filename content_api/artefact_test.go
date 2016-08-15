@@ -31,7 +31,6 @@ var _ = Describe("Artefact", func() {
     "business_proposition": true,
     "description": "this is a test artefact",
     "language": "en",
-    "need_extended_font": false,
     "alternative_title": "",
     "body": "foo",
     "parts": [

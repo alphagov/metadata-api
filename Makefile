@@ -1,15 +1,17 @@
-.PHONY: deps test build
+.PHONY: build run test clean
 
-all: test build
+BINARY ?= $(PWD)/metadata-api
 
-test:
-	go test -v $$(go list ./... | grep -v '/vendor/')
-
-build:
-	go build -o metadata-api
-
-run: build
-	./metadata-api
+all: clean build test
 
 clean:
-	rm -rf bin metadata-api
+	rm -rf $(BINARY)
+
+build:
+	go build -o $(BINARY)
+
+test: build
+	go test -race -v $$(go list ./... | grep -v '/vendor/')
+
+run: build
+	$(BINARY)

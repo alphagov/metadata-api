@@ -51,8 +51,5 @@ within `.envrc` in the `metadata-api` root.
 
 ## Configuration
 
-Most configuration can be handled using `ENV` variables that get
-passed into the process. However the `BEARER_TOKEN` values for both
-the Content API and the Need API are provided using a JSON file in the
-working directory of the process. See `config.json` for an example of
-this file.
+Configuration can be handled using `ENV` variables that get
+passed into the process.

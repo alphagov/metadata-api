@@ -104,10 +104,7 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string,
 }
 
 func main() {
-	config, err := ReadConfig("config.json")
-	if err != nil {
-		logging.Fatalln("Couldn't load configuration", err)
-	}
+	config := InitConfig()
 
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)

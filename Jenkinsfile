@@ -3,6 +3,11 @@
 REPOSITORY = 'metadata-api'
 
 node {
+  env.REPO      = 'alphagov/metadata-api'
+  env.BUILD_DIR = '__build'
+  env.GOPATH    = "${WORKSPACE}/${BUILD_DIR}"
+  env.SRC_PATH  = "${env.GOPATH}/src/github.com/${REPO}"
+
   def govuk = load '/var/lib/jenkins/groovy_scripts/govuk_jenkinslib.groovy'
 
   try {
@@ -10,23 +15,40 @@ node {
        checkout scm
     }
 
-    stage("Setup environment") {
-      govuk.setEnvar("REPO", "alphagov/metadata-api")
-      govuk.setEnvar("GOPATH", "${PWD}/gopath")
-      govuk.setEnvar("GO_GITHUB_PATH", "${GOPATH}/src/github.com")
-      govuk.setEnvar("BUILD_PATH", "${GO_GITHUB_PATH}/${REPO}")
+    stage("Setup build environment") {
+      // Clean GOPATH: Recursively delete everything in the current directory
+      dir(env.GOPATH) {
+        deleteDir()
+      }
+
+      // Create build path
+      sh "mkdir -p ${env.SRC_PATH}"
+
+      // Seed build path
+      dir(env.WORKSPACE) {
+        sh "/usr/bin/rsync -a ./ ${env.SRC_PATH} --exclude=$BUILD_DIR"
+      }
     }
 
     stage("Build") {
-      sshagent(['govuk-ci-ssh-key']) {
-        sh "rm -rf ${GOPATH} && mkdir -p ${GOPATH}/bin ${BUILD_PATH}"
-        sh "rsync -a ./ ${BUILD_PATH} --exclude=gopath"
-        sh "cd ${BUILD_PATH} && make"
+      dir(env.SRC_PATH) {
+        sh 'BINARY=$WORKSPACE/metadata-api make clean build'
+      }
+    }
+
+    // Run tests
+    wrap([$class: 'AnsiColorBuildWrapper']) {
+      stage("Test") {
+        dir(env.SRC_PATH) {
+          sh 'BINARY=$WORKSPACE/metadata-api make test'
+          // TODO: This appears to hang on CI.
+          // sh '$WORKSPACE/metadata-api -version'
+        }
       }
     }
 
     stage("Archive artefact") {
-      archiveArtifacts "metadata-api"
+      archiveArtifacts 'metadata-api'
     }
 
     if (env.BRANCH_NAME == 'master') {

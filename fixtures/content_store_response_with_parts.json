@@ -1,0 +1,53 @@
+{
+  "base_path": "/government/get-involved/take-part/volunteer",
+  "content_id": "73940c62-2580-42b1-9c22-f8e85b71065d",
+  "title": "Volunteer",
+  "format": "take_part",
+  "need_ids": [],
+  "locale": "en",
+  "updated_at": "2016-02-12T10:54:41.779Z",
+  "first_published_at": null,
+  "public_updated_at": "2015-08-03T11:14:18.000+00:00",
+  "phase": "live",
+  "analytics_identifier": null,
+  "expanded_links": {
+  },
+  "links": {
+    "available_translations": [
+      {
+        "content_id": "73940c62-2580-42b1-9c22-f8e85b71065d",
+        "title": "Volunteer",
+        "base_path": "/government/get-involved/take-part/volunteer",
+        "description": "Find out how to volunteer in your local community and give your time to help others.",
+        "api_url": "https://www.gov.uk/api/content/government/get-involved/take-part/volunteer",
+        "web_url": "https://www.gov.uk/government/get-involved/take-part/volunteer",
+        "locale": "en",
+        "analytics_identifier": null,
+        "links": {
+        }
+      }
+    ]
+  },
+  "description": "Find out how to volunteer in your local community and give your time to help others.",
+  "details": {
+    "body": "<div class=\"govspeak\"><h2 id=\"what-is-it\">What is it?</h2>\n<p>Anyone can volunteer. It can be very rewarding and is a great way to:</p>\n\n<ul>\n  <li>meet new people</li>\n  <li>gain new or use existing skills</li>\n  <li>get experience</li>\n  <li>make a big difference to your community</li>\n</ul>\n\n<p>There are lots of easy ways to give your time to help others – from having a cup of tea with an elderly neighbour, to helping out in your local area or making a regular commitment to volunteer with a charity or community group. </p>\n\n<h2 id=\"how-can-i-get-involved\">How can I get involved?</h2>\n<p>There are several organisations that can help you find a way to volunteer that suits you.</p>\n\n<p><a rel=\"external\" href=\"http://www.do-it.org.uk/\">Do-it</a> is a database of UK volunteering opportunities. You can search more than a million volunteering opportunities by interest, activity or location and then apply online.</p>\n\n<p>You can also contact <a rel=\"external\" href=\"http://www.volunteering.org.uk/iwanttovolunteer\">Volunteering England</a>, <a rel=\"external\" href=\"http://www.volunteerscotland.net/\">Volunteer Scotland</a>, <a rel=\"external\" href=\"http://www.volunteering-wales.net/\">Volunteering Wales</a>, <a rel=\"external\" href=\"http://www.jerseycharities.org/\">Jersey Charities</a>, <a rel=\"external\" href=\"http://www.charity.org.gg/\">Guernsey Charities</a> or <a rel=\"external\" href=\"http://www.volunteeringmatters.org.uk\">Volunteering Matters</a> to find opportunities in your area.</p>\n\n<p><a rel=\"external\" href=\"https://www.joininuk.org/\">Join-in</a> runs volunteering projects as a legacy of the London 2012 Olympic and Paralympic Games. Contact them to find out about how to get involved with local sporting and community projects,</p>\n\n<h3 id=\"young-people\">Young people</h3>\n\n<p>Young people can also volunteer either at school or in their own time. If you’re aged 16 or 17 you can take part in the National Citizen Service (NCS).</p>\n\n</div>",
+    "image": {
+      "url": "https://assets.digital.cabinet-office.gov.uk/government/uploads/system/uploads/take_part_page/image/1/s300_BigTreePlant.jpg",
+      "alt_text": "Volunteers working in a garden"
+    },
+    "parts": [
+      {
+        "web_url": "https://www.gov.uk/housing-benefit/overview",
+        "slug": "overview",
+        "order": 1,
+        "title": "Overview"
+      },
+      {
+        "web_url": "https://www.gov.uk/housing-benefit/what-youll-get",
+        "slug": "what-youll-get",
+        "order": 2,
+        "title": "What you'll get"
+      }
+    ]
+  }
+}

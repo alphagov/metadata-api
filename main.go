@@ -13,7 +13,6 @@ import (
 	"gopkg.in/unrolled/render.v1"
 
 	"github.com/alphagov/metadata-api/content"
-	"github.com/alphagov/metadata-api/content_api"
 	"github.com/alphagov/metadata-api/content_store"
 	"github.com/alphagov/metadata-api/need_api"
 	"github.com/alphagov/metadata-api/performance_platform"
@@ -25,7 +24,6 @@ var (
 	port         = getEnvDefault("HTTP_PORT", "3000")
 	httpProtocol = getHttpProtocol(appDomain)
 
-	contentAPI     = httpProtocol + "://contentapi." + appDomain
 	needAPI        = httpProtocol + "://need-api." + appDomain
 	performanceAPI = "https://www.performance.service.gov.uk"
 
@@ -43,7 +41,7 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	renderer.JSON(w, http.StatusOK, map[string]string{"status": "OK"})
 }
 
-func InfoHandler(contentAPI, needAPI, performanceAPI string,
+func InfoHandler(needAPI, performanceAPI string,
 	apiRequest content.JSONRequest, config *Config) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var needs []*need_api.Need = make([]*need_api.Need, 0)
@@ -58,8 +56,6 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string,
 		artefactStart := time.Now()
 		statsDTiming("artefact", artefactStart, time.Now())
 		artefact, err := content_store.GetArtefact(slug, apiRequest)
-		if artefact == nil {
-			artefact, err = content_api.FetchArtefact(contentAPI, config.BearerTokenContentAPI, slug)
 			if err != nil {
 				if err == request.NotFoundError {
 					renderError(w, http.StatusNotFound, err.Error())
@@ -68,7 +64,6 @@ func InfoHandler(contentAPI, needAPI, performanceAPI string,
 
 				renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
 				return
-			}
 		}
 
 		needStart := time.Now()
@@ -109,7 +104,7 @@ func main() {
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 	httpMux.HandleFunc("/info/", InfoHandler(
-		contentAPI, needAPI, performanceAPI, apiRequest, config))
+		needAPI, performanceAPI, apiRequest, config))
 
 	middleware := negroni.New()
 	middleware.Use(loggingMiddleware)

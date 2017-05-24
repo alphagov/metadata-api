@@ -56,14 +56,14 @@ func InfoHandler(needAPI, performanceAPI string,
 		artefactStart := time.Now()
 		statsDTiming("artefact", artefactStart, time.Now())
 		artefact, err := content_store.GetArtefact(slug, apiRequest)
-			if err != nil {
-				if err == request.NotFoundError {
-					renderError(w, http.StatusNotFound, err.Error())
-					return
-				}
-
-				renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
+		if err != nil {
+			if err == request.NotFoundError {
+				renderError(w, http.StatusNotFound, err.Error())
 				return
+			}
+
+			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
+			return
 		}
 
 		needStart := time.Now()

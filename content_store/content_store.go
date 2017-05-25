@@ -34,16 +34,16 @@ func parseJSON(response string) (*Artefact, error) {
 		return nil, err
 	}
 
-	documentType := jsonMap["document_type"]
-	if documentType != nil {
-		if strings.Contains(documentType.(string), "placeholder") {
+	schemaName := jsonMap["schema_name"]
+	if schemaName != nil {
+		if strings.Contains(schemaName.(string), "placeholder") {
 			return nil, StatusError{404}
 		}
 	}
 
 	artefact.ID = jsonMap["content_id"].(string)
 	artefact.Title = jsonMap["title"].(string)
-	artefact.Format = jsonMap["format"].(string)
+	artefact.Format = jsonMap["document_type"].(string)
 	artefact.WebURL = webURL(jsonMap["base_path"].(string))
 	artefact.Details = unmarshalDetails(jsonMap)
 	artefact.Details.Parts = unmarshalParts(jsonMap, *artefact)

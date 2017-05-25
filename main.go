@@ -56,14 +56,14 @@ func InfoHandler(needAPI, performanceAPI string,
 		artefactStart := time.Now()
 		statsDTiming("artefact", artefactStart, time.Now())
 		artefact, err := content_store.GetArtefact(slug, apiRequest)
-			if err != nil {
-				if err == request.NotFoundError {
-					renderError(w, http.StatusNotFound, err.Error())
-					return
-				}
-
-				renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
+		if err != nil {
+			if err == request.NotFoundError {
+				renderError(w, http.StatusNotFound, err.Error())
 				return
+			}
+
+			renderError(w, http.StatusInternalServerError, "Artefact: "+err.Error())
+			return
 		}
 
 		needStart := time.Now()
@@ -79,7 +79,7 @@ func InfoHandler(needAPI, performanceAPI string,
 
 		performanceStart := time.Now()
 		ppClient := performanceclient.NewDataClient(performanceAPI, logging)
-		is_multipart := (len(artefact.Details.Parts) != 0) || (artefact.Format == "smart-answer")
+		is_multipart := (len(artefact.Details.Parts) != 0) || (artefact.Format == "smart_answer")
 		performance, err := performance_platform.SlugStatistics(ppClient, slug, is_multipart)
 		statsDTiming("performance", performanceStart, time.Now())
 		if err != nil {

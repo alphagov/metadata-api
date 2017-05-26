@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -22,6 +23,7 @@ import (
 var (
 	appDomain    = getEnvDefault("GOVUK_APP_DOMAIN", "alphagov.co.uk")
 	port         = getEnvDefault("HTTP_PORT", "3000")
+	timeout      = getEnvDefault("HTTP_TIMEOUT", "2000")
 	httpProtocol = getHttpProtocol(appDomain)
 
 	needAPI        = httpProtocol + "://need-api." + appDomain
@@ -101,6 +103,12 @@ func InfoHandler(needAPI, performanceAPI string,
 func main() {
 	config := InitConfig()
 
+	i, err := strconv.Atoi(timeout)
+	if err != nil {
+		logging.Fatalln("Timeout wasn't an integer of milliseconds")
+	}
+
+	http.DefaultClient.Timeout = time.Duration(i) * time.Millisecond
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/healthcheck", HealthCheckHandler)
 	httpMux.HandleFunc("/info/", InfoHandler(
